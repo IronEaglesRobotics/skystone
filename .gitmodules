@@ -1,0 +1,3 @@
+[submodule "birdseye_server"]
+	path = birdseye_server
+	url = https://github.com/tearabite/birdseye_server.git
