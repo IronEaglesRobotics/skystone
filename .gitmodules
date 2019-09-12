@@ -1,0 +1,4 @@
+[submodule "Birdseye"]
+	path = Birdseye
+	url = https://github.com/tearabite/birdseye_server.git
+	branch = pared
