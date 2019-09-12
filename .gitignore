@@ -24,5 +24,8 @@ Thumbs.db
 .gradle
 build/
 
+# Birdseye
+birdseyeserver/
+
 *ASUS_PC_01*
 
