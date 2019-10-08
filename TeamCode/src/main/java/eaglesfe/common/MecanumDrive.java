@@ -17,15 +17,19 @@ public class MecanumDrive implements DriveBase {
     private DcMotor backRight;
 
     public MecanumDrive(DcMotor frontLeft, DcMotor frontRight, DcMotor backLeft, DcMotor backRight){
+
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
         this.backRight = backRight;
 
+        MecanumDrive drive = this;
+
         this.ticksPerRev = this.frontLeft.getMotorType().getTicksPerRev();
 
         this.setRunMode(RunMode.RUN_USING_ENCODER);
         this.setBrakeMode(ZeroPowerBehavior.BRAKE);
+
     }
 
     public boolean isBusy() {

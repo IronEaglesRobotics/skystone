@@ -6,7 +6,6 @@ import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import eaglesfe.skystone.opmodes.Robot;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 
 @Autonomous(name="Bing bong", group ="Competition")
@@ -28,17 +27,17 @@ public class autonomousTest extends LinearOpMode {
         server = new BirdseyeServer(3708, telemetry);
         this.tracker = new SkystoneBirdseyeTracker();
         this.tracker.setShowCameraPreview(true);
-        this.tracker.setVuforiaKey(Robot.Constants.VUFORIA_KEY);
-        this.tracker.setWebcamNames(Robot.Constants.POS_CAM);
+        this.tracker.setVuforiaKey(skystoneRobot.Constants.VUFORIA_KEY);
+        this.tracker.setWebcamNames(skystoneRobot.Constants.POS_CAM);
         this.tracker.setCameraForwardOffset(9.0f);
-        this.tracker.setCameraVerticalOffset(Robot.Constants.CAM_Z_OFFSET);
-        this.tracker.cameraLeftOffsetMm(Robot.Constants.CAM_Y_OFFSET);
-        this.tracker.setCameraRotationalOffset(Robot.Constants.CAM_R_OFFSET);
+        this.tracker.setCameraVerticalOffset(skystoneRobot.Constants.CAM_Z_OFFSET);
+        this.tracker.cameraLeftOffsetMm(skystoneRobot.Constants.CAM_Y_OFFSET);
+        this.tracker.setCameraRotationalOffset(skystoneRobot.Constants.CAM_R_OFFSET);
         this.tracker.initialize(this.hardwareMap);
         this.tracker.start();
         server.start();
 
-        final Robot robot = new Robot(hardwareMap);
+        final skystoneRobot robot = new skystoneRobot(hardwareMap);
 
         FieldPosition position = null;
         VectorF currentTarget = backredWall;
