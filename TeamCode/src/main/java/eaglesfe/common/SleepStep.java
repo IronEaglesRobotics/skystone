@@ -2,7 +2,7 @@ package eaglesfe.common;
 
 import eaglesfe.common.Step;
 
-public class wSleepStep extends Step {
+public class SleepStep extends Step {
 
     String nextState;
     public SleepStep(String description, int timeout, String nextState) {

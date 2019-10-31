@@ -40,7 +40,7 @@ public class MecanumDrive implements DriveBase {
                 || this.backRight.isBusy();
     }
 
-    public void setForwardTargetPositionRelative(double inches, double speed) {
+    public void setTargetPositionRelative(double inches, double speed) {
         int ticks = (int)((inches / wheelCircumference) * 560);
         this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);
         this.setRunMode(RunMode.RUN_TO_POSITION);
@@ -53,11 +53,48 @@ public class MecanumDrive implements DriveBase {
         this.setPower(speed);
     }
 
+    public void setTargetStrafePositionRelative(double inches, double power) {
+        int ticks = (int)((inches / wheelCircumference) * 560);
+        this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);
+        this.setRunMode(RunMode.RUN_TO_POSITION);
+
+        this.frontLeft.setTargetPosition(ticks);
+        this.frontRight.setTargetPosition(ticks);
+        this.backLeft.setTargetPosition(ticks);
+        this.backRight.setTargetPosition(ticks);
+
+        this.setStrafePower(power);
+    }
+
+    public void setForwardTargetPositionRelative(double inches, double power) {
+        int ticks = (int)((inches / wheelCircumference) * 560);
+        this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);
+        this.setRunMode(RunMode.RUN_TO_POSITION);
+
+        this.frontLeft.setTargetPosition(ticks);
+        this.frontRight.setTargetPosition(ticks);
+        this.backLeft.setTargetPosition(ticks);
+        this.backRight.setTargetPosition(ticks);
+
+        this.setPower(power);
+    }
+
     public void setPower(double power) {
         this.frontLeft.setPower(power);
         this.frontRight.setPower(power);
         this.backLeft.setPower(power);
         this.backRight.setPower(power);
+    }
+
+    public void setStrafePower(double power) {
+        this.frontLeft.setPower(power);
+        this.frontRight.setPower(-power);
+        this.backLeft.setPower(-power);
+        this.backRight.setPower(power);
+    }
+
+    public String motorTelemetry() {
+        return ("fl:" + frontLeft.getPower() + "fr:" + frontRight.getPower() + "bl:" + backLeft.getPower() + "br:" + backRight.getPower());
     }
 
     @Override
