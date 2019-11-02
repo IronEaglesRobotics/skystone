@@ -6,18 +6,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp(name = "skystone teleop")
 public class skystoneTeleop extends OpMode {
 
-    skystoneRobot robot;
-    private double x = 0;
-    private double y = 0;
-    private double z = 0;
-    private boolean fastFunction = false;
-    private double armInput = 0;
-    private double intakeInputIn = 0;
-    private double intakeInputOut = 0;
-    private boolean smallGrab = false;
-    private boolean largeGrab = false;
-    private boolean rotateLeft = false;
-    private boolean rotateRight = false;
+    private skystoneRobot robot;
+
+    // Actuator Input State
+    private boolean prevSmallGrab = false;
+    private boolean prevLargeGrab = false;
+
 
     @Override
     public void init () {
@@ -26,34 +20,33 @@ public class skystoneTeleop extends OpMode {
 
     @Override
     public void loop() {
-        //drive
-        x = gamepad1.left_stick_x;
-        y = gamepad1.left_stick_y;
-        z = gamepad1.right_stick_x;
-        fastFunction = gamepad1.left_bumper;
+        // Gamepad 1
+        int inputScale = gamepad1.left_bumper ? 2 : 1;
+        double x = -gamepad1.left_stick_x / inputScale;
+        double y = gamepad1.left_stick_y / inputScale;
+        double z = Math.pow(gamepad1.right_stick_x, 3) / inputScale;
+        double intakeInputIn = gamepad1.left_trigger;
+        double intakeInputOut = gamepad1.right_trigger;
 
-        if (fastFunction){
-            robot.setDriveInput(x, y, z);
-        } else {
-            robot.setDriveInput(x / 2, y / 2, z / 2);
-        }
+        robot.setDriveInput(x, y, z);
+        robot.setIntakeSpeed(intakeInputIn - intakeInputOut);
+
         telemetry.addData("motor powers:", robot.drive.motorTelemetry());
 
-        //stacking arm
-        armInput = gamepad2.left_stick_y;
-        smallGrab = gamepad2.a;
-        largeGrab = gamepad2.b;
-        rotateLeft = gamepad2.left_bumper;
-        rotateRight = gamepad2.right_bumper;
+        // Gamepad 2
+        double armInput = Math.pow(gamepad2.left_stick_y, 3);
+        boolean smallGrab = gamepad2.a && !this.prevSmallGrab;
+        boolean largeGrab = gamepad2.b && !this.prevLargeGrab;
+        boolean rotateLeft = gamepad2.left_bumper;
+        boolean rotateRight = gamepad2.right_bumper;
+
         robot.setArmPower(armInput);
         robot.clawGrab(smallGrab, largeGrab);
         robot.wristTurn(rotateLeft, rotateRight);
 
-        //intake
-        intakeInputIn = gamepad1.left_trigger;
-        intakeInputOut = gamepad1.right_trigger;
-        robot.setIntakeSpeed(intakeInputIn - intakeInputOut);
-
         telemetry.update();
+
+        this.prevSmallGrab = gamepad2.a;
+        this.prevLargeGrab = gamepad2.b;
     }
 }

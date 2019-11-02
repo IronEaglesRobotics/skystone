@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.Const;
+
 import eaglesfe.common.MecanumDrive;
 
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
@@ -20,8 +22,6 @@ public class skystoneRobot {
     private DcMotor intakeLeft;
     private Servo wrist;
     private Servo claw;
-    private boolean smallLast;
-    private boolean largeLast;
 
     //initialize hardware map
     public skystoneRobot(HardwareMap hardwareMap) {
@@ -155,16 +155,18 @@ public class skystoneRobot {
     }
 
     public void clawGrab(boolean smallGrab, boolean largeGrab){
-        boolean isClawOpen = claw.getPosition() > 0.5;
-
-        if(smallGrab && !smallLast) {
-            claw.setPosition(isClawOpen ? Constants.CLAWMIN : Constants.CLAWMID);
-        } else if (largeGrab) {
-            claw.setPosition(isClawOpen ? Constants.CLAWMIN : Constants.CLAWMAX);
+        if (smallGrab && largeGrab) {
+            return;
         }
+        
+        boolean isClawOpen = claw.getPosition() < 0.55;
 
-        this.smallLast = smallGrab;
-        this.largeLast = largeGrab;
+        if (smallGrab) {
+            this.claw.setPosition(isClawOpen ? Constants.CLAWCLOSED : Constants.CLAWMID);
+        }
+        else if (largeGrab) {
+            this.claw.setPosition(isClawOpen ? Constants.CLAWCLOSED : Constants.CLAWOPEN);
+        }
     }
 
     public double wristPosition() {
@@ -172,13 +174,15 @@ public class skystoneRobot {
     }
 
     public void wristTurn(boolean left, boolean right) {
+        double newPosition = wristPosition();
         if (left) {
-            wrist.setPosition((wristPosition() - Constants.WRISTRATE));
+            newPosition -= Constants.WRISTRATE;
+        }
+        if (right) {
+            newPosition += Constants.WRISTRATE;
         }
 
-        if (right) {
-            wrist.setPosition((wristPosition() + Constants.WRISTRATE));
-        }
+        wrist.setPosition(newPosition);
     }
 
     /* ================== INTAKE =================== */
@@ -203,10 +207,12 @@ public class skystoneRobot {
         //number things
         public static final double WRISTMAX        = 1.0;
         public static final double WRISTMIN        = 0.0;
-        public static final double WRISTRATE       = 0.007;
+        public static final double WRISTRATE       = 0.005;
         public static final double CLAWMAX         = 1.0;
-        public static final double CLAWMID         = 0.6;
         public static final double CLAWMIN         = 0.1;
+        public static final double CLAWOPEN        = CLAWMIN;
+        public static final double CLAWMID         = 0.5;
+        public static final double CLAWCLOSED      = CLAWMAX;
 
         //vuforia configuration
         public static final String VUFORIA_KEY     = "AUmjH6X/////AAABmeSd/rs+aU4giLmf5DG5vUaAfHFLv0/vAnAFxt5vM6cbn1/nI2sdkRSEf6HZLA/is/+VQY5/i6u5fbJ4TugEN8HOxRwvUvkrAeIpgnMYEe3jdD+dPxhE88dB58mlPfVwIPJc2KF4RE7weuRBoZ8KlrEKbNNu20ommdG7S/HXP9Kv/xocj82rgj+iPEaitftALZ6QaGBdfSl3nzVMK8/KgQJNlSbGic/Wf3VI8zcYmMyDslQPK45hZKlHW6ezxdGgJ7VJCax+Of8u/LEwfzqDqBsuS4/moNBJ1mF6reBKe1hIE2ffVTSvKa2t95g7ht3Z4M6yQdsI0ZaJ6AGnl1wTlm8Saoal4zTbm/VCsmZI081h";
