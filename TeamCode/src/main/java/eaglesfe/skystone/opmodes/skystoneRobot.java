@@ -1,5 +1,7 @@
 package eaglesfe.skystone.opmodes;
 
+import com.eaglesfe.birdseye.roverruckus.RoverRuckusBirdseyeTracker;
+import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -14,14 +16,15 @@ public class skystoneRobot {
 
     //hardware map
     public final HardwareMap hardwareMap;
-    public boolean isInitialized;
     public MecanumDrive drive;
+    private SkystoneBirdseyeTracker tracker;
     private DcMotor arm;
     private DcMotor intakeLeft;
     private Servo wrist;
     private Servo claw;
     private boolean smallLast;
     private boolean largeLast;
+    public boolean isInitialized;
 
     //initialize hardware map
     public skystoneRobot(HardwareMap hardwareMap) {
@@ -62,6 +65,28 @@ public class skystoneRobot {
         //is initialized
         this.isInitialized = true;
     }
+
+    public void setVisionEnabled(boolean enabled) {
+        if (enabled) {
+            this.tracker = new SkystoneBirdseyeTracker();
+            this.tracker.setShowCameraPreview(false);
+            this.tracker.setVuforiaKey(Constants.VUFORIA_KEY);
+            this.tracker.setWebcamNames(Constants.POS_CAM);
+            this.tracker.setCameraForwardOffset(Constants.CAM_X_OFFSET);
+            this.tracker.setCameraVerticalOffset(Constants.CAM_Z_OFFSET);
+            this.tracker.cameraLeftOffsetMm(Constants.CAM_Y_OFFSET);
+            this.tracker.setCameraRotationalOffset(Constants.CAM_R_OFFSET);
+            this.tracker.initialize(this.hardwareMap);
+        } else {
+            if (this.tracker != null) {
+                this.tracker.stop();
+                this.tracker = null;
+            }
+        }
+    }
+
+
+
 
     //general motor speed setter
     public void setMotorPower(DcMotor motor, double power) {

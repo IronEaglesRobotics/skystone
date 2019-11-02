@@ -4,6 +4,8 @@ import com.eaglesfe.birdseye.BirdseyeServer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ public class skystoneAuto extends LinearOpMode {
     public void runOpMode() {
         final BirdseyeServer server = new BirdseyeServer(3708, telemetry);
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
+        robot.setVisionEnabled(true);
 
 /*================================================================================================*/
 
@@ -29,7 +32,7 @@ public class skystoneAuto extends LinearOpMode {
 
         steps.put("forward", new Step("moves forward 10 in") {
             @Override
-            public void enter() { robot.drive.setTargetPositionRelative(10,.5);}
+            public void enter() { robot.drive.setTargetPositionRelative(8,.5);}
 
             @Override
             public boolean isFinished() {
@@ -42,10 +45,43 @@ public class skystoneAuto extends LinearOpMode {
             }
         });
 
-        steps.put("strafe right", new Step("strafes right 10 in") {
+        steps.put("strafe right", new Step("strafes to first skystone in") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(10, .5);
+                robot.setDriveInputX(.25);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                //maybe need to open the claw here
+                return "extend arm";
+            }
+        });
+
+        steps.put("extend arm", new Step("moves arm down to pick up the 1st skystone") {
+            @Override
+            public void enter() {
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "claw grab";
+            }
+        });
+
+        steps.put("claw grab", new Step("grabs the skystone") {
+            @Override
+            public void enter() {
             }
 
             @Override
@@ -55,41 +91,75 @@ public class skystoneAuto extends LinearOpMode {
 
             @Override
             public String leave() {
-                return "backwards";
+                return  "move with block";
             }
         });
 
-        steps.put("backwards", new Step("moves backwards 10 in") {
+        steps.put("move with block", new Step("tips arm back, turns, and drops block") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(10, -.5);
+
             }
 
             @Override
             public boolean isFinished() {
-                return robot.drive.isBusy();
+                return false;
             }
 
             @Override
             public String leave() {
-                return "strafe left";
+                //maybe drop the block here
+                return "retract arm";
             }
         });
 
-        steps.put("strafe left", new Step("strafes left 10 in") {
+        steps.put("retract arm", new Step("put the arm under 14in") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(10, -.5);
+
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
             }
 
             @Override
             public String leave() {
+                return "push block";
+            }
+        });
+
+        steps.put("push block", new Step("push the block all the way under") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "end";
+            }
+        });
+
+        steps.put("end", new Step("end") {
+            @Override
+            public void enter() {
                 robot.stopAllMotors();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return !robot.drive.isBusy();
+            }
+
+            @Override
+            public String leave() {
                 return null;
             }
         });
