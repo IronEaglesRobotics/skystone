@@ -1,13 +1,18 @@
 package eaglesfe.skystone.opmodes;
 
-import com.eaglesfe.birdseye.roverruckus.RoverRuckusBirdseyeTracker;
 import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Const;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+
+import java.util.Random;
 
 import eaglesfe.common.MecanumDrive;
 
@@ -17,15 +22,16 @@ import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 public class skystoneRobot {
 
     //hardware map
-    public final HardwareMap hardwareMap;
-    public MecanumDrive drive;
-    private SkystoneBirdseyeTracker tracker;
-    private DcMotor arm;
-    private DcMotor intakeLeft;
-    private Servo wrist;
-    private Servo claw;
-    private boolean smallLast;
-    private boolean largeLast;
+    public final                HardwareMap             hardwareMap;
+    public                      MecanumDrive            drive;
+    private                     SkystoneBirdseyeTracker tracker;
+    private                     DcMotor                 arm;
+    private                     DcMotor                 intakeLeft;
+    private                     Servo                   wrist;
+    private                     Servo                   claw;
+    private                     Servo                   leftFoundation;
+    private                     Servo                   rightFoundation;
+    private                     BNO055IMU               imu;
     public boolean isInitialized;
 
     //initialize hardware map
@@ -49,9 +55,16 @@ public class skystoneRobot {
 
         //stacking arm
         this.arm = this.hardwareMap.dcMotor.get(Constants.ARM);
-        this.arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.arm.setDirection(DcMotorSimple.Direction.FORWARD);
+        this.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.armMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+        this.arm.setMode(armMode);
+        this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        this.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.arm.setTargetPosition(0);
+        this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         //intake motor
         this.intakeLeft = this.hardwareMap.dcMotor.get(Constants.INTAKELEFT);
@@ -60,9 +73,27 @@ public class skystoneRobot {
         //stacking servo
         this.wrist = this.hardwareMap.servo.get(Constants.WRIST);
         this.wrist.scaleRange(Constants.WRISTMIN, Constants.WRISTMAX);
+        this.wrist.setPosition(.5);
 
         this.claw = this.hardwareMap.servo.get(Constants.CLAW);
         this.claw.scaleRange(Constants.CLAWMIN, Constants.CLAWMAX);
+
+        this.leftFoundation = this.hardwareMap.servo.get(Constants.LEFTFOUNDATION);
+        this.leftFoundation.scaleRange(Constants.FOUNDATIONOPEN, Constants.FOUNDATIONCLOSED);
+        this.leftFoundation.setPosition(1);
+
+        this.rightFoundation = this.hardwareMap.servo.get(Constants.RIGHTFOUNDATION);
+        this.rightFoundation.scaleRange(Constants.FOUNDATIONOPEN, Constants.FOUNDATIONCLOSED);
+        this.rightFoundation.setDirection(Servo.Direction.REVERSE);
+        this.rightFoundation.setPosition(1);
+
+        this.imu = this.hardwareMap.get(BNO055IMU.class, Constants.GYRO);
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode                 = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit            = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled       = false;
+        this.imu.initialize(parameters);
 
         //is initialized
         this.isInitialized = true;
@@ -71,7 +102,7 @@ public class skystoneRobot {
     public void setVisionEnabled(boolean enabled) {
         if (enabled) {
             this.tracker = new SkystoneBirdseyeTracker();
-            this.tracker.setShowCameraPreview(false);
+            this.tracker.setShowCameraPreview(true);
             this.tracker.setVuforiaKey(Constants.VUFORIA_KEY);
             this.tracker.setWebcamNames(Constants.POS_CAM);
             this.tracker.setCameraForwardOffset(Constants.CAM_X_OFFSET);
@@ -87,21 +118,43 @@ public class skystoneRobot {
         }
     }
 
+    public void useCameraTensor() {
+        this.tracker.stop();
+        this.tracker.startSkystoneTracking();
+    }
 
+    public void useCameraVuforia() {
+        this.tracker.start();
+        this.tracker.stopSkystoneTracking();
+    }
 
+    private float baseGyroHeading;
 
-    //general motor speed setter
+    public void resetGyroHeading() {
+        baseGyroHeading = getGyroHeading180();
+    }
+
+    public float getGyroHeading180() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle - baseGyroHeading;
+    }
+
+    public boolean isReady() {
+        return this.isInitialized
+                && this.imu.isSystemCalibrated();
+    }
+
+    //general motor power setter
     public void setMotorPower(DcMotor motor, double power) {
         motor.setPower(power);
     }
 
     //general motor to position
     private void setMotorPosition(DcMotor motor, int position, double speed) {
+        motor.setTargetPosition(position);
         motor.setPower(speed);
     }
 
-    /* ================== DRIVE =================== */
-
+    // =============================================================================================
     private double setX, setY, setZ = 0;
     public void setDriveInput(double x, double y, double z) {
         setX = x;
@@ -139,19 +192,35 @@ public class skystoneRobot {
         drive.setInput(0,0,0);
     }
 
-    /* ================== ARM =================== */
-
-    //input scaling
-    public static double armScale(double input) {
-        double armMin = 0.0;
-        double armMax = 0.2;
-        return ((input - armMin)/(armMax - armMin))*(armMax - armMin)+(armMin);
-    }
-
+    // =============================================================================================
     //specific arm speed setter
-    public void setArmPower(double input) {
-        setMotorPower(arm, armScale(input));
+
+    private DcMotor.RunMode armMode;
+
+    public void setArmPower(double speed) {
+        armMode = arm.getMode();
+        if (armMode != DcMotor.RunMode.RUN_USING_ENCODER) {
+            armMode = DcMotor.RunMode.RUN_USING_ENCODER;
+            arm.setMode(armMode);
+        }
+        arm.setPower(speed);
     }
+
+    public void setArmPosition(double position, double speed) {
+        position = Range.clip(position, 0.0, 1.0);
+        int ticks = (int)(position * Constants.MAX_ARM_TICKS);
+        setMotorPosition(this.arm, -ticks, speed);
+    }
+
+    public int getArmPosition() {
+        return arm.getCurrentPosition();
+    }
+
+    public boolean isArmBusy() {
+        return arm.isBusy();
+    }
+
+    // =============================================================================================
 
     //general servo position setter
     public void setServoPostition(Servo servo, double position) {
@@ -168,19 +237,6 @@ public class skystoneRobot {
         setServoPostition(claw, position);
     }
 
-    public void armProtector () {
-        double armPosition = arm.getCurrentPosition();
-        if (armPosition >= 0 && armPosition <= 20) {
-            setWristPosition(0);
-        } else if (armPosition > 20 && armPosition < 90) {
-            setWristPosition(0);
-            setClawPosition(0);
-        } else if (armPosition >= 90 && armPosition <= 180) {
-
-        } else {
-
-        }
-    }
 
     public void clawGrab(boolean smallGrab, boolean largeGrab){
         if (smallGrab && largeGrab) {
@@ -188,12 +244,23 @@ public class skystoneRobot {
         }
         
         boolean isClawOpen = claw.getPosition() < 0.55;
+        boolean isClawBigOpen = !(claw.getPosition() < .55);
 
         if (smallGrab) {
             this.claw.setPosition(isClawOpen ? Constants.CLAWCLOSED : Constants.CLAWMID);
         }
         else if (largeGrab) {
-            this.claw.setPosition(isClawOpen ? Constants.CLAWCLOSED : Constants.CLAWOPEN);
+            this.claw.setPosition(isClawBigOpen ? Constants.CLAWCLOSED : Constants.CLAWOPEN);
+        }
+    }
+
+    public void foundationGrab(boolean foundationGrab) {
+        boolean isFoundationClamped = leftFoundation.getPosition() > 0.5;
+
+        if(foundationGrab) {
+            this.leftFoundation.setPosition(isFoundationClamped ? Constants.FOUNDATIONOPEN : Constants.FOUNDATIONCLOSED);
+            this.rightFoundation.setPosition(isFoundationClamped ? Constants.FOUNDATIONOPEN : Constants.FOUNDATIONCLOSED);
+
         }
     }
 
@@ -201,16 +268,21 @@ public class skystoneRobot {
         return wrist.getPosition();
     }
 
-    public void wristTurn(boolean left, boolean right) {
+    public void wristTurn(boolean left, boolean right, boolean safe) {
         double newPosition = wristPosition();
         if (left) {
             newPosition -= Constants.WRISTRATE;
-        }
-        if (right) {
+        } else if (right) {
             newPosition += Constants.WRISTRATE;
+        } else if (safe) {
+            newPosition = .5;
         }
 
         wrist.setPosition(newPosition);
+    }
+
+    public int locateSkystone() {
+        return tracker.tryLocateSkystone();
     }
 
     /* ================== INTAKE =================== */
@@ -230,9 +302,13 @@ public class skystoneRobot {
         public static final String INTAKELEFT      = "IntakeLeft";
         public static final String WRIST           = "Wrist";
         public static final String CLAW            = "Claw";
+        public static final String LEFTFOUNDATION  = "LeftFoundation";
+        public static final String RIGHTFOUNDATION = "RightFoundation";
+        public static final String GYRO            = "IMU";
         public static final String POS_CAM         = "PositionCamera";
 
         //number things
+        public static final int    MAX_ARM_TICKS   = 1800;
         public static final double WRISTMAX        = 1.0;
         public static final double WRISTMIN        = 0.0;
         public static final double WRISTRATE       = 0.005;
@@ -241,6 +317,8 @@ public class skystoneRobot {
         public static final double CLAWOPEN        = CLAWMIN;
         public static final double CLAWMID         = 0.5;
         public static final double CLAWCLOSED      = CLAWMAX;
+        public static final double FOUNDATIONOPEN = 0.0;
+        public static final double FOUNDATIONCLOSED = .75;
 
         //vuforia configuration
         public static final String VUFORIA_KEY     = "AUmjH6X/////AAABmeSd/rs+aU4giLmf5DG5vUaAfHFLv0/vAnAFxt5vM6cbn1/nI2sdkRSEf6HZLA/is/+VQY5/i6u5fbJ4TugEN8HOxRwvUvkrAeIpgnMYEe3jdD+dPxhE88dB58mlPfVwIPJc2KF4RE7weuRBoZ8KlrEKbNNu20ommdG7S/HXP9Kv/xocj82rgj+iPEaitftALZ6QaGBdfSl3nzVMK8/KgQJNlSbGic/Wf3VI8zcYmMyDslQPK45hZKlHW6ezxdGgJ7VJCax+Of8u/LEwfzqDqBsuS4/moNBJ1mF6reBKe1hIE2ffVTSvKa2t95g7ht3Z4M6yQdsI0ZaJ6AGnl1wTlm8Saoal4zTbm/VCsmZI081h";

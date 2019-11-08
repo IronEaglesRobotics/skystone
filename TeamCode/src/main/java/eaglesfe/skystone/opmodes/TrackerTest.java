@@ -4,12 +4,13 @@ import com.eaglesfe.birdseye.BirdseyeServer;
 import com.eaglesfe.birdseye.FieldPosition;
 import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.lang.annotation.Target;
 
 import eaglesfe.roverruckus.Robot;
-
+@Disabled
 @Autonomous(name="Tracker Test", group ="Competition")
 public class TrackerTest extends LinearOpMode {
 

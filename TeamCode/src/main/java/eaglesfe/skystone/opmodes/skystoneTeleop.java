@@ -11,7 +11,7 @@ public class skystoneTeleop extends OpMode {
     // Actuator Input State
     private boolean prevSmallGrab = false;
     private boolean prevLargeGrab = false;
-
+    private boolean prevFoundationGrab = false;
 
     @Override
     public void init () {
@@ -21,7 +21,7 @@ public class skystoneTeleop extends OpMode {
     @Override
     public void loop() {
         // Gamepad 1
-        int inputScale = gamepad1.left_bumper ? 2 : 1;
+        int inputScale = gamepad1.left_bumper ? 1 : 2;
         double x = -gamepad1.left_stick_x / inputScale;
         double y = gamepad1.left_stick_y / inputScale;
         double z = Math.pow(gamepad1.right_stick_x, 3) / inputScale;
@@ -29,24 +29,30 @@ public class skystoneTeleop extends OpMode {
         double intakeInputOut = gamepad1.right_trigger;
 
         robot.setDriveInput(x, y, z);
-        robot.setIntakeSpeed(intakeInputIn - intakeInputOut);
+        robot.setIntakeSpeed(.5 - intakeInputOut);
 
         telemetry.addData("motor powers:", robot.drive.motorTelemetry());
 
         // Gamepad 2
-        double armInput = Math.pow(gamepad2.left_stick_y, 3);
+        double armInput = Math.pow(gamepad2.left_stick_y, 3) / 3;
         boolean smallGrab = gamepad2.a && !this.prevSmallGrab;
         boolean largeGrab = gamepad2.b && !this.prevLargeGrab;
+        boolean foundationGrab = gamepad2.y && !this.prevFoundationGrab;
         boolean rotateLeft = gamepad2.left_bumper;
         boolean rotateRight = gamepad2.right_bumper;
+        boolean wristSave = gamepad2.x;
 
         robot.setArmPower(armInput);
         robot.clawGrab(smallGrab, largeGrab);
-        robot.wristTurn(rotateLeft, rotateRight);
+        robot.wristTurn(rotateLeft, rotateRight, wristSave);
+        robot.foundationGrab(foundationGrab);
 
-        telemetry.update();
+        telemetry.addData("input to arm", armInput);
 
         this.prevSmallGrab = gamepad2.a;
         this.prevLargeGrab = gamepad2.b;
+        this.prevFoundationGrab = gamepad2.y;
+
+        telemetry.update();
     }
 }

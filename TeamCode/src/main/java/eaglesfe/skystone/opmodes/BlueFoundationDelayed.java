@@ -10,8 +10,8 @@ import java.util.Map;
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
-@Autonomous (name = "blue foundation", group = "competition")
-public class BlueFoundation extends LinearOpMode{
+@Autonomous (name = "blue foundation delayed", group = "blue competition")
+public class BlueFoundationDelayed extends LinearOpMode{
 
     @Override
     public void runOpMode() {
@@ -21,9 +21,28 @@ public class BlueFoundation extends LinearOpMode{
         robot.useCameraTensor();
 
         //map of the steps
-        Map<String, Step> steps = new HashMap<>();
+        final Map<String, Step> steps = new HashMap<>();
 
-        steps.put("start", new Step("moving forward...") {
+        steps.put("start", new Step("15 second delay...") {
+            double startingTime;
+
+            @Override
+            public void enter() {
+                startingTime = getRuntime();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return (getRuntime() - startingTime) > 15000;
+            }
+
+            @Override
+            public String leave() {
+                return "move forward";
+            }
+        });
+
+        steps.put("move forward", new Step("moving forward...") {
             @Override
             public void enter() {
                 robot.drive.setTargetPositionRelative(-22,.3);

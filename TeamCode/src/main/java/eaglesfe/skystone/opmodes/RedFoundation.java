@@ -10,8 +10,8 @@ import java.util.Map;
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
-@Autonomous (name = "blue foundation", group = "blue competition")
-public class BlueFoundation extends LinearOpMode{
+@Autonomous (name = "red foundation", group = "red competition")
+public class RedFoundation extends LinearOpMode{
 
     @Override
     public void runOpMode() {
@@ -79,7 +79,7 @@ public class BlueFoundation extends LinearOpMode{
         steps.put("loud strafe", new Step("Shhhhh...") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(-60, .4);
+                robot.drive.setTargetStrafePositionRelative(60, .4);
             }
 
             @Override

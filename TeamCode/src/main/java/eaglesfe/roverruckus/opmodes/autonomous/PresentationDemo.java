@@ -3,6 +3,7 @@ package eaglesfe.roverruckus.opmodes.autonomous;
 import com.eaglesfe.birdseye.BirdseyeServer;
 import com.eaglesfe.birdseye.FieldPosition;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import eaglesfe.roverruckus.Robot;
 
 @Autonomous(name="Presentation Demo", group ="Competition")
+@Disabled
 public class PresentationDemo extends LinearOpMode {
 
     BirdseyeServer server;

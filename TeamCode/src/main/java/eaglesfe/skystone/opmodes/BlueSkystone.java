@@ -11,14 +11,14 @@ import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
 @Autonomous (name = "blue skystone", group = "blue competition")
-public class skystoneAuto extends LinearOpMode {
+public class BlueSkystone extends LinearOpMode {
 
     @Override
     public void runOpMode() {
         final BirdseyeServer server = new BirdseyeServer(3708, telemetry);
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
         robot.setVisionEnabled(true);
-        robot.useCameraVuforia();
+        robot.useCameraTensor();
 
 /*================================================================================================*/
 

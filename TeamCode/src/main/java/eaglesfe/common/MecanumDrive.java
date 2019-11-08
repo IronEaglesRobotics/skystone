@@ -59,8 +59,8 @@ public class MecanumDrive implements DriveBase {
         this.setRunMode(RunMode.RUN_TO_POSITION);
 
         this.frontLeft.setTargetPosition(ticks);
-        this.frontRight.setTargetPosition(ticks);
-        this.backLeft.setTargetPosition(ticks);
+        this.frontRight.setTargetPosition(-ticks);
+        this.backLeft.setTargetPosition(-ticks);
         this.backRight.setTargetPosition(ticks);
 
         this.setStrafePower(power);

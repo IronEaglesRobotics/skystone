@@ -9,6 +9,7 @@ import com.eaglesfe.birdseye.FieldPosition;
 import com.eaglesfe.birdseye.roverruckus.MineralSample;
 import com.eaglesfe.birdseye.util.MathHelpers;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import eaglesfe.roverruckus.Robot;
 import eaglesfe.roverruckus.opmodes.OpModeHelpers;
 
 @Autonomous(name="Autonomous Depot", group ="Competition")
-
+@Disabled
 public class CompetitionAutonomousDepot extends LinearOpMode {
 
     private Enum LastGoldPositionFromLander;

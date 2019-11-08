@@ -10,15 +10,15 @@ import java.util.Map;
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
-@Autonomous (name = "blue skystone", group = "blue competition")
-public class BlueSkystone extends LinearOpMode {
+@Autonomous (name = "red skystone", group = "red competition")
+public class RedSkystone extends LinearOpMode {
 
     @Override
     public void runOpMode() {
         final BirdseyeServer server = new BirdseyeServer(3708, telemetry);
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
         robot.setVisionEnabled(true);
-        robot.useCameraVuforia();
+        robot.useCameraTensor();
 
 /*================================================================================================*/
 
@@ -67,14 +67,14 @@ public class BlueSkystone extends LinearOpMode {
             @Override
             public void enter() {
                 robot.resetGyroHeading();
-                robot.setDriveInput(0,0, -0.30);
+                robot.setDriveInput(0,0, 0.30);
                 robot.setArmPosition(.5,.3);
 
             }
 
             @Override
             public boolean isFinished() {
-                if (robot.getGyroHeading180() > 80) {
+                if (robot.getGyroHeading180() < -80) {
                     robot.setDriveInput(0, 0, 0);
                     return true;
                 }
@@ -91,7 +91,7 @@ public class BlueSkystone extends LinearOpMode {
         steps.put("strafe right", new Step("go right") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(-20, .4);
+                robot.drive.setTargetStrafePositionRelative(20, .4);
             }
 
             @Override
