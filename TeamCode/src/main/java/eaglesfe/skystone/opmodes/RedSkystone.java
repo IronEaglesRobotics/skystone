@@ -13,31 +13,123 @@ import eaglesfe.common.Steps;
 @Autonomous (name = "red skystone", group = "red competition")
 public class RedSkystone extends LinearOpMode {
 
+    int moveMod = 0;
+    int moveModTwo = 0;
+
     @Override
     public void runOpMode() {
         final BirdseyeServer server = new BirdseyeServer(3708, telemetry);
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
         robot.setVisionEnabled(true);
-        robot.useCameraTensor();
+        robot.useCameraVuforia();
 
-/*================================================================================================*/
+        /*================================================================================================*/
 
         //map of the steps
         Map<String, Step> steps = new HashMap<>();
 
-        steps.put("start", new Step("moves forward 10 in") {
+        steps.put("start", new Step("moving forward..") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-8,.5);
+                robot.drive.setTargetPositionRelative(-16,.3);
             }
 
             @Override
             public boolean isFinished() {
-                 return !robot.drive.isBusy();
+                if(!robot.drive.isBusy()) {
+                    sleep(1000);
+                    return true;
+                }
+                return false;
             }
 
             @Override
             public String leave() {
+
+                return "back a little";
+            }
+        });
+
+        steps.put("back a little", new Step("BAAACK...") {
+            @Override
+            public void enter() {
+                robot.drive.setForwardTargetPositionRelative(4,.3);
+            }
+
+            @Override
+            public boolean isFinished() {
+                if (!robot.drive.isBusy()) {
+                    sleep(1000);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                if (robot.locateSkystone() == 0.0f) {
+                    return "left";
+                } else if (robot.locateSkystone() == 1.0f) {
+                    return "deploy arm";
+                } else if (robot.locateSkystone() == 2.0f) {
+                    return "right";
+                }
+                return "deploy arm";
+            }
+        });
+
+        steps.put("left", new Step("moving to left...") {
+            @Override
+            public void enter() {
+                robot.drive.setTargetStrafePositionRelative(9, .4);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return !robot.drive.isBusy();
+            }
+
+            @Override
+            public String leave() {
+                moveMod = 8;
+                moveModTwo = -8;
+                return "deploy arm";
+            }
+        });
+
+        steps.put("right", new Step("moving to right...") {
+            @Override
+            public void enter() {
+                robot.drive.setTargetStrafePositionRelative(-12, .4);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return !robot.drive.isBusy();
+            }
+
+            @Override
+            public String leave() {
+                moveMod = -8;
+                moveModTwo = -8;
+                return "right reposition";
+            }
+        });
+
+        steps.put("right reposition", new Step("re boop", 100) {
+            @Override
+            public void enter() {
+                robot.setDriveInput(0,0, 0.30);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                robot.stopAllMotors();
                 return "deploy arm";
             }
         });
@@ -63,7 +155,7 @@ public class RedSkystone extends LinearOpMode {
         });
 
 
-        steps.put("pull back and turn", new Step("repositioning with the block") {
+        steps.put("pull back and turn", new Step("repositioning with the block", 1500) {
             @Override
             public void enter() {
                 robot.resetGyroHeading();
@@ -74,7 +166,8 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                if (robot.getGyroHeading180() < -80) {
+                float heading = robot.getGyroHeading180();
+                if (heading < -80) {
                     robot.setDriveInput(0, 0, 0);
                     return true;
                 }
@@ -91,7 +184,7 @@ public class RedSkystone extends LinearOpMode {
         steps.put("strafe right", new Step("go right") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(20, .4);
+                robot.drive.setTargetStrafePositionRelative(15, .4);
             }
 
             @Override
@@ -109,7 +202,7 @@ public class RedSkystone extends LinearOpMode {
             @Override
             public void enter() {
                 robot.setArmPosition(1, .3);
-                robot.drive.setTargetPositionRelative(5,.5);
+                robot.drive.setTargetPositionRelative(5 + moveMod,.5);
             }
 
             @Override
@@ -163,7 +256,7 @@ public class RedSkystone extends LinearOpMode {
         steps.put("move forward", new Step("move forward") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-60,.5);
+                robot.drive.setTargetPositionRelative(-60 + moveMod + moveModTwo,.5);
             }
 
             @Override
@@ -212,20 +305,18 @@ public class RedSkystone extends LinearOpMode {
             }
         });
 
-        while (!isStarted()) {
-            telemetry.addData("skystone position", robot.locateSkystone());
-            telemetry.addData("arm encoder ticks", robot.getArmPosition());
-            telemetry.update();
-        }
-
         //wait for the auto to be started
         waitForStart();
+
+        //telemetry
+        telemetry.addData("intitialized", "");
+        telemetry.update();
 
         //once started start running through the steps
         Steps stepsRunner = new Steps(steps, this);
         stepsRunner.runStepsMap();
 
-/*================================================================================================*/
+        /*================================================================================================*/
 
         //end of autonomous
         robot.stopAllMotors();

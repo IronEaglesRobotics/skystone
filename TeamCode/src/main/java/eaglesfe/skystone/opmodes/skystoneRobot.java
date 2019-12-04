@@ -27,6 +27,7 @@ public class skystoneRobot {
     private                     SkystoneBirdseyeTracker tracker;
     private                     DcMotor                 arm;
     private                     DcMotor                 intakeLeft;
+    private                     DcMotor                 intakeRight;
     private                     Servo                   wrist;
     private                     Servo                   claw;
     private                     Servo                   leftFoundation;
@@ -70,9 +71,12 @@ public class skystoneRobot {
         this.intakeLeft = this.hardwareMap.dcMotor.get(Constants.INTAKELEFT);
         this.intakeLeft.setDirection(FORWARD);
 
+        this.intakeRight = this.hardwareMap.dcMotor.get(Constants.INTAKERIGHT);
+        this.intakeRight.setDirection(REVERSE);
+
         //stacking servo
         this.wrist = this.hardwareMap.servo.get(Constants.WRIST);
-        this.wrist.scaleRange(Constants.WRISTMIN, Constants.WRISTMAX);
+        this.wrist.scaleRange(Constants.WRISTMINHB, Constants.WRISTMAXHB);
         this.wrist.setPosition(.5);
 
         this.claw = this.hardwareMap.servo.get(Constants.CLAW);
@@ -120,12 +124,10 @@ public class skystoneRobot {
 
     public void useCameraTensor() {
         this.tracker.stop();
-        this.tracker.startSkystoneTracking();
     }
 
     public void useCameraVuforia() {
         this.tracker.start();
-        this.tracker.stopSkystoneTracking();
     }
 
     private float baseGyroHeading;
@@ -207,7 +209,6 @@ public class skystoneRobot {
     }
 
     public void setArmPosition(double position, double speed) {
-        position = Range.clip(position, 0.0, 1.0);
         int ticks = (int)(position * Constants.MAX_ARM_TICKS);
         setMotorPosition(this.arm, -ticks, speed);
     }
@@ -281,7 +282,7 @@ public class skystoneRobot {
         wrist.setPosition(newPosition);
     }
 
-    public int locateSkystone() {
+    public float locateSkystone() {
         return tracker.tryLocateSkystone();
     }
 
@@ -290,6 +291,7 @@ public class skystoneRobot {
     //specific intake speed setter
     public void setIntakeSpeed(double input) {
         setMotorPower(intakeLeft, input);
+        setMotorPower(intakeRight, input);
     }
 
     public class Constants {
@@ -300,6 +302,7 @@ public class skystoneRobot {
         public static final String BACK_RIGHT      = "BackRight";
         public static final String ARM             = "Arm";
         public static final String INTAKELEFT      = "IntakeLeft";
+        public static final String INTAKERIGHT     = "IntakeRight";
         public static final String WRIST           = "Wrist";
         public static final String CLAW            = "Claw";
         public static final String LEFTFOUNDATION  = "LeftFoundation";
@@ -308,16 +311,18 @@ public class skystoneRobot {
         public static final String POS_CAM         = "PositionCamera";
 
         //number things
-        public static final int    MAX_ARM_TICKS   = 1800;
+        public static final int    MAX_ARM_TICKS   = 1850;
         public static final double WRISTMAX        = 1.0;
         public static final double WRISTMIN        = 0.0;
         public static final double WRISTRATE       = 0.005;
+        public static final double WRISTMAXHB      = 0.975;
+        public static final double WRISTMINHB      = 0.025;
         public static final double CLAWMAX         = 1.0;
         public static final double CLAWMIN         = 0.1;
         public static final double CLAWOPEN        = CLAWMIN;
         public static final double CLAWMID         = 0.5;
         public static final double CLAWCLOSED      = CLAWMAX;
-        public static final double FOUNDATIONOPEN = 0.0;
+        public static final double FOUNDATIONOPEN  = 0.0;
         public static final double FOUNDATIONCLOSED = .75;
 
         //vuforia configuration

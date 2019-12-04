@@ -23,7 +23,24 @@ public class RedFoundationDelayed extends LinearOpMode{
         //map of the steps
         final Map<String, Step> steps = new HashMap<>();
 
-        steps.put("start", new Step("15 second delay...") {
+        steps.put("start", new Step("strafe to the left...") {
+            @Override
+            public void enter() {
+                robot.drive.setTargetStrafePositionRelative(-20, .4);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return !robot.drive.isBusy();
+            }
+
+            @Override
+            public String leave() {
+                return "initial forward";
+            }
+        });
+
+        steps.put("initial forward", new Step("15 second delay...") {
             double startingTime;
 
             @Override
@@ -45,7 +62,7 @@ public class RedFoundationDelayed extends LinearOpMode{
         steps.put("move forward", new Step("moving forward...") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-22,.3);
+                robot.drive.setTargetPositionRelative(-32,.3);
             }
 
             @Override
@@ -80,7 +97,7 @@ public class RedFoundationDelayed extends LinearOpMode{
         steps.put("back to wall", new Step("moving back...") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(30, .5);
+                robot.drive.setTargetPositionRelative(44, .5);
             }
 
             @Override
@@ -129,15 +146,12 @@ public class RedFoundationDelayed extends LinearOpMode{
             }
         });
 
-        //telemetry
-        while (!isStarted()) {
-            telemetry.addData("skystone position", robot.locateSkystone());
-            telemetry.addData("arm encoder ticks", robot.getArmPosition());
-            telemetry.update();
-        }
-
         //wait for the auto to be started
         waitForStart();
+
+        //telemetry
+        telemetry.addData("intitialized", "");
+        telemetry.update();
 
         //once started start running through the steps
         Steps stepsRunner = new Steps(steps, this);

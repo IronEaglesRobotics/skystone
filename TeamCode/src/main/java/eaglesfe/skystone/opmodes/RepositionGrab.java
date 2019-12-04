@@ -10,98 +10,146 @@ import java.util.Map;
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
-@Autonomous (name = "red foundation", group = "red competition")
-public class RedFoundation extends LinearOpMode{
+@Autonomous (name = "reposition grab", group = "red competition")
+public class RepositionGrab extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        final BirdseyeServer server = new BirdseyeServer(3708, telemetry);
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
         robot.setVisionEnabled(true);
-        robot.useCameraTensor();
+        robot.useCameraVuforia();
 
-        //map of the steps
         Map<String, Step> steps = new HashMap<>();
 
-        steps.put("start", new Step("strafe to the left...") {
+        steps.put("start", new Step("deploying arm...") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(-20, .4);
+                robot.setClawPosition(skystoneRobot.Constants.CLAWMID);
+                robot.setArmPosition(1, .3);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return !robot.isArmBusy();
             }
 
             @Override
             public String leave() {
-                return "initial forward";
+                return "grab one";
             }
         });
 
-        steps.put("initial forward", new Step("moving forward...") {
+        steps.put("grab one", new Step("grab block...", 200) {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-32,.3);
+                robot.setClawPosition(skystoneRobot.Constants.CLAWCLOSED);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
             }
 
             @Override
             public String leave() {
-                robot.foundationGrab(true);
-                return "grab foundation";
+                return "move out of line";
             }
         });
 
-        steps.put("grab foundation", new Step("repositioning foundation...") {
+        steps.put("move out of line", new Step("moving out of line...", 1500) {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-6, .3);
+                robot.drive.setTargetPositionRelative(-8,.4);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
             }
 
             @Override
             public String leave() {
-                return "back to wall";
+                return "turn one";
             }
         });
 
-        steps.put("back to wall", new Step("moving back...") {
+        steps.put("turn one", new Step("turn...", 700) {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(44, .5);
+                robot.setWristPosition(0);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
             }
 
             @Override
             public String leave() {
-                robot.foundationGrab(true);
-                return "loud strafe";
+                return "open";
             }
         });
 
-        steps.put("loud strafe", new Step("Shhhhh...") {
+        steps.put("open", new Step("opening...", 200) {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(60, .4);
+                robot.setClawPosition(skystoneRobot.Constants.CLAWOPEN);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "turn two";
+            }
+        });
+
+        steps.put("turn two", new Step("turning back...",700) {
+            @Override
+            public void enter() {
+                robot.setWristPosition(.5);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "grab two";
+            }
+        });
+
+        steps.put("grab two", new Step("close up",200) {
+            @Override
+            public void enter() {
+                robot.setClawPosition(skystoneRobot.Constants.CLAWCLOSED);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "into robot";
+            }
+        });
+
+        steps.put("into robot", new Step("moving arm into bot...") {
+            @Override
+            public void enter() {
+                robot.setArmPosition(0, .3);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return !robot.isArmBusy();
             }
 
             @Override
@@ -110,7 +158,7 @@ public class RedFoundation extends LinearOpMode{
             }
         });
 
-        steps.put("end", new Step("end") {
+        steps.put("end", new Step("STOP") {
             @Override
             public void enter() {
                 robot.stopAllMotors();
@@ -118,7 +166,7 @@ public class RedFoundation extends LinearOpMode{
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return true;
             }
 
             @Override
@@ -142,5 +190,6 @@ public class RedFoundation extends LinearOpMode{
 
         //end of autonomous
         robot.stopAllMotors();
+
     }
 }

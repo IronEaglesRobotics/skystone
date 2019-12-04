@@ -29,12 +29,13 @@ public class skystoneTeleop extends OpMode {
         double intakeInputOut = gamepad1.right_trigger;
 
         robot.setDriveInput(x, y, z);
-        robot.setIntakeSpeed(.5 - intakeInputOut);
+        robot.setIntakeSpeed(intakeInputIn - intakeInputOut);
 
         telemetry.addData("motor powers:", robot.drive.motorTelemetry());
 
-        // Gamepad 2
-        double armInput = Math.pow(gamepad2.left_stick_y, 3) / 3;
+        // Gamepad
+        double armInputScale = gamepad2.right_trigger > 0 ? 1.5 : 3;
+        double armInput = Math.pow(gamepad2.left_stick_y, 3) / armInputScale;
         boolean smallGrab = gamepad2.a && !this.prevSmallGrab;
         boolean largeGrab = gamepad2.b && !this.prevLargeGrab;
         boolean foundationGrab = gamepad2.y && !this.prevFoundationGrab;

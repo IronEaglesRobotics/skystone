@@ -50,6 +50,7 @@ public class MecanumDrive implements DriveBase {
         this.backLeft.setTargetPosition(ticks);
         this.backRight.setTargetPosition(ticks);
 
+
         this.setPower(speed);
     }
 
