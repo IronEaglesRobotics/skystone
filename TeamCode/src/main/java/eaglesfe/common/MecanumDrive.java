@@ -50,7 +50,6 @@ public class MecanumDrive implements DriveBase {
         this.backLeft.setTargetPosition(ticks);
         this.backRight.setTargetPosition(ticks);
 
-
         this.setPower(speed);
     }
 
@@ -96,6 +95,10 @@ public class MecanumDrive implements DriveBase {
 
     public String motorTelemetry() {
         return ("fl:" + frontLeft.getPower() + "fr:" + frontRight.getPower() + "bl:" + backLeft.getPower() + "br:" + backRight.getPower());
+    }
+
+    public void moveToPoint() {
+
     }
 
     @Override

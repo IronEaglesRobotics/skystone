@@ -26,7 +26,7 @@ public class RedFoundation extends LinearOpMode{
         steps.put("start", new Step("strafe to the left...") {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(-20, .4);
+                robot.drive.setTargetStrafePositionRelative(-18, .4);
             }
 
             @Override
@@ -43,7 +43,9 @@ public class RedFoundation extends LinearOpMode{
         steps.put("initial forward", new Step("moving forward...") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-32,.3);
+                robot.drive.setTargetPositionRelative(-28,.3);
+                robot.setArmPosition(.2,.3);
+
             }
 
             @Override
@@ -61,7 +63,7 @@ public class RedFoundation extends LinearOpMode{
         steps.put("grab foundation", new Step("repositioning foundation...") {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(-6, .3);
+                robot.drive.setTargetPositionRelative(-3.5, .1);
             }
 
             @Override
@@ -71,37 +73,89 @@ public class RedFoundation extends LinearOpMode{
 
             @Override
             public String leave() {
-                return "back to wall";
+                return "corner";
             }
         });
 
-        steps.put("back to wall", new Step("moving back...") {
+        steps.put("corner", new Step("corner...", 1400) {
             @Override
             public void enter() {
-                robot.drive.setTargetPositionRelative(44, .5);
+                robot.drive.setInput(0,.4,0);
+                robot.setArmPosition(-.05,.3);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "turn foundation";
+            }
+        });
+
+        steps.put("turn foundation", new Step("turning...", 2850) {
+            @Override
+            public void enter() {
+                robot.drive.setInput(0,0,0.3);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "wall push";
+            }
+        });
+
+        steps.put("wall push", new Step("pushing...", 800) {
+            @Override
+            public void enter() {
+                robot.drive.setInput(0,-.2,0);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
             }
 
             @Override
             public String leave() {
                 robot.foundationGrab(true);
-                return "loud strafe";
+                return "park";
             }
         });
 
-        steps.put("loud strafe", new Step("Shhhhh...") {
+        steps.put("park", new Step("parking...", 1200) {
             @Override
             public void enter() {
-                robot.drive.setTargetStrafePositionRelative(60, .4);
+                robot.drive.setInput(-1,1,0);
             }
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return false;
+            }
+
+            @Override
+            public String leave() {
+                return "park two";
+            }
+        });
+
+        steps.put("park two", new Step("parking...", 600) {
+            @Override
+            public void enter() {
+                robot.drive.setInput(0,.5,0);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return false;
             }
 
             @Override

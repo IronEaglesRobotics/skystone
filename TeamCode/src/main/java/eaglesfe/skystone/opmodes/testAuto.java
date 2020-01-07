@@ -3,6 +3,7 @@ package eaglesfe.skystone.opmodes;
 import com.eaglesfe.birdseye.BirdseyeServer;
 import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.HashMap;
@@ -10,7 +11,6 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
-
 @Autonomous (name = "test", group = "blue competition")
 public class testAuto extends LinearOpMode{
 
@@ -19,28 +19,73 @@ public class testAuto extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        this.tracker = new SkystoneBirdseyeTracker();
-        this.tracker.setShowCameraPreview(true);
-        this.tracker.setVuforiaKey(skystoneRobot.Constants.VUFORIA_KEY);
-        this.tracker.setWebcamNames(skystoneRobot.Constants.POS_CAM);
-        this.tracker.setCameraForwardOffset(skystoneRobot.Constants.CAM_X_OFFSET);
-        this.tracker.setCameraVerticalOffset(skystoneRobot.Constants.CAM_Z_OFFSET);
-        this.tracker.cameraLeftOffsetMm(skystoneRobot.Constants.CAM_Y_OFFSET);
-        this.tracker.setCameraRotationalOffset(skystoneRobot.Constants.CAM_R_OFFSET);
-        this.tracker.initialize(this.hardwareMap);
+        final skystoneRobot robot = new skystoneRobot(hardwareMap);
+        robot.setVisionEnabled(true);
+        robot.useCameraVuforia();
 
-        this.tracker.start();
+        //map of the steps
+        Map<String, Step> steps = new HashMap<>();
+
+        //steps
+        steps.put("start", new Step("starting...") {
+            @Override
+            public void enter() {
+                robot.settleAngle();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return true;
+            }
+
+            @Override
+            public String leave() {
+                return "turn";
+            }
+        });
+
+        steps.put("turn", new Step("turning...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.angleTurnRelative(90, .2, testAuto.this);
+            }
+
+            @Override
+            public String leave() {
+                return null;
+            }
+        });
+
+        steps.put("end", new Step("ending...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return true;
+            }
+
+            @Override
+            public String leave() {
+                return null;
+            }
+        });
 
         //wait for the auto to be started
         waitForStart();
 
-        //telemetry
-        while (opModeIsActive()) {
-            telemetry.addData("intitialized", tracker.tryLocateSkystone());
-            telemetry.update();
-        }
+        //steps runner
+        Steps stepsRunner = new Steps(steps, this);
+        stepsRunner.runStepsMap();
 
-        /*================================================================================================*/
         //end of autonomous
+        robot.stopAllMotors();
     }
 }

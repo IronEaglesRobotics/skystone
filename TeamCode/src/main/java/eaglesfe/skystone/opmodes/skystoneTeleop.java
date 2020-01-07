@@ -22,6 +22,7 @@ public class skystoneTeleop extends OpMode {
     public void loop() {
         // Gamepad 1
         int inputScale = gamepad1.left_bumper ? 1 : 2;
+        boolean gyroReset = gamepad1.a;
         double x = -gamepad1.left_stick_x / inputScale;
         double y = gamepad1.left_stick_y / inputScale;
         double z = Math.pow(gamepad1.right_stick_x, 3) / inputScale;
@@ -42,11 +43,13 @@ public class skystoneTeleop extends OpMode {
         boolean rotateLeft = gamepad2.left_bumper;
         boolean rotateRight = gamepad2.right_bumper;
         boolean wristSave = gamepad2.x;
+        float capstone = gamepad2.left_trigger;
 
         robot.setArmPower(armInput);
         robot.clawGrab(smallGrab, largeGrab);
         robot.wristTurn(rotateLeft, rotateRight, wristSave);
         robot.foundationGrab(foundationGrab);
+        robot.capstoneRelease(capstone);
 
         telemetry.addData("input to arm", armInput);
 

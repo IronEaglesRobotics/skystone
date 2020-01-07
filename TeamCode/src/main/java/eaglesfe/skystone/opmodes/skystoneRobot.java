@@ -2,6 +2,9 @@ package eaglesfe.skystone.opmodes;
 
 import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -11,10 +14,12 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Random;
 
 import eaglesfe.common.MecanumDrive;
+import eaglesfe.common.SleepStep;
 
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
@@ -32,7 +37,16 @@ public class skystoneRobot {
     private                     Servo                   claw;
     private                     Servo                   leftFoundation;
     private                     Servo                   rightFoundation;
+    private                     Servo                   capstoneRelease;
     private                     BNO055IMU               imu;
+    private                     ColorSensor             cLeft;
+    private                     ColorSensor             cRight;
+
+    Orientation             lastAngles = new Orientation();
+    double                  globalAngle;
+
+    private LinearOpMode autoOpMode;
+
     public boolean isInitialized;
 
     //initialize hardware map
@@ -77,7 +91,7 @@ public class skystoneRobot {
         //stacking servo
         this.wrist = this.hardwareMap.servo.get(Constants.WRIST);
         this.wrist.scaleRange(Constants.WRISTMINHB, Constants.WRISTMAXHB);
-        this.wrist.setPosition(.5);
+        this.wrist.setPosition(Constants.WRISTMIDDLE);
 
         this.claw = this.hardwareMap.servo.get(Constants.CLAW);
         this.claw.scaleRange(Constants.CLAWMIN, Constants.CLAWMAX);
@@ -91,11 +105,21 @@ public class skystoneRobot {
         this.rightFoundation.setDirection(Servo.Direction.REVERSE);
         this.rightFoundation.setPosition(1);
 
+        this.capstoneRelease = this.hardwareMap.servo.get(Constants.CAPSTONE);
+        this.capstoneRelease.scaleRange(Constants.CAPSTONEATTACHED,Constants.CAPSTONERELEASED);
+        this.capstoneRelease.setDirection(Servo.Direction.FORWARD);
+        this.capstoneRelease.setPosition(1);
+
+        //color sensors
+        this.cLeft = this.hardwareMap.colorSensor.get("CLEFT");
+        this.cRight = this.hardwareMap.colorSensor.get("CRIGHT");
+
         this.imu = this.hardwareMap.get(BNO055IMU.class, Constants.GYRO);
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.mode                 = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit            = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
         parameters.loggingEnabled       = false;
         this.imu.initialize(parameters);
 
@@ -130,14 +154,8 @@ public class skystoneRobot {
         this.tracker.start();
     }
 
-    private float baseGyroHeading;
-
-    public void resetGyroHeading() {
-        baseGyroHeading = getGyroHeading180();
-    }
-
     public float getGyroHeading180() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle - baseGyroHeading;
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
     public boolean isReady() {
@@ -186,12 +204,79 @@ public class skystoneRobot {
         drive.setForwardTargetPositionRelative(Math.abs(inches) * -1, speed);
     }
 
+    private Orientation angles;
+    public float curHeading;
+
+    public void settleAngle() {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        globalAngle = angles.firstAngle;
+    }
+
+    public double checkOrientation() {
+//// read the orientation of the robot
+//        angles = this.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//        this.imu.getPosition();
+//// and save the heading
+//        curHeading = angles.firstAngle;
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
+    }
+
+    public boolean corectingStrafe(long duration, double speed, LinearOpMode opmode) {
+        long startingTime = System.currentTimeMillis();
+        checkOrientation();
+        double startingPosition = globalAngle;
+        while (System.currentTimeMillis() - startingTime < duration && opmode.opModeIsActive()) {
+            checkOrientation();
+            drive.setInput(speed,0,
+                    //Math.copySign(Math.abs(globalAngle - startingPosition), globalAngle < startingPosition ? -1 : 1)
+                    ((globalAngle - startingPosition)/25)*.2);
+        }
+        return true;
+    }
+
+    public boolean angleTurnRelative(double degrees, double speed, LinearOpMode opmode) {
+        checkOrientation();
+        double startingPosition = globalAngle;
+        double targetPosition = startingPosition + degrees;
+        while((Math.abs(globalAngle - startingPosition) < degrees - 5 || (Math.abs(globalAngle - startingPosition) > degrees + 5)) && opmode.opModeIsActive()) {
+            drive.setInput(0,0,Math.copySign(speed, globalAngle < targetPosition ? 1 : -1));
+//            drive.setInput(0,0,Math.copySign(speed, globalAngle < startingPosition ? 1 : -1));
+//            (Math.abs(targetPosition - globalAngle)/degrees)
+            checkOrientation();
+        }
+        return true;
+    }
+
+//    public boolean angleTurnRelative(double degrees, double speed) {
+//        double startingPosition = globalAngle;
+//        while(Math.abs(globalAngle - startingPosition) <= degrees) {
+//            drive.setInput(0,0,speed);
+//            checkOrientation();
+//        }
+//        return true;
+//    }
+
     public boolean isDriveBusy() {
         return drive.isBusy();
     }
 
     public void stopAllMotors() {
         drive.setInput(0,0,0);
+        setIntakeSpeed(0);
     }
 
     // =============================================================================================
@@ -265,6 +350,13 @@ public class skystoneRobot {
         }
     }
 
+    public void capstoneRelease(double capstoneRelease) {
+        if(capstoneRelease > .5) {
+            this.capstoneRelease.setPosition(0);
+        }
+    }
+
+
     public double wristPosition() {
         return wrist.getPosition();
     }
@@ -276,14 +368,22 @@ public class skystoneRobot {
         } else if (right) {
             newPosition += Constants.WRISTRATE;
         } else if (safe) {
-            newPosition = .5;
+            newPosition = .44;
         }
 
         wrist.setPosition(newPosition);
     }
 
+    public String skystoneTelemetry() {
+        return "Left: " + cLeft.alpha() + " Right: " + cRight.alpha();
+    }
+
     public float locateSkystone() {
-        return tracker.tryLocateSkystone();
+        if (Math.abs(cLeft.alpha() - cRight.alpha()) < 8) {
+          return 2.0f;
+        } else {
+            return cLeft.alpha() > cRight.alpha() ? 1.0f : 0.0f;
+        }
     }
 
     /* ================== INTAKE =================== */
@@ -307,6 +407,7 @@ public class skystoneRobot {
         public static final String CLAW            = "Claw";
         public static final String LEFTFOUNDATION  = "LeftFoundation";
         public static final String RIGHTFOUNDATION = "RightFoundation";
+        public static final String CAPSTONE        = "Capstone";
         public static final String GYRO            = "IMU";
         public static final String POS_CAM         = "PositionCamera";
 
@@ -316,14 +417,17 @@ public class skystoneRobot {
         public static final double WRISTMIN        = 0.0;
         public static final double WRISTRATE       = 0.005;
         public static final double WRISTMAXHB      = 0.975;
-        public static final double WRISTMINHB      = 0.025;
-        public static final double CLAWMAX         = 1.0;
+        public static final double WRISTMIDDLE     = 0.44;
+        public static final double WRISTMINHB      = 0.0;
+        public static final double CLAWMAX         = 0.9;
         public static final double CLAWMIN         = 0.1;
         public static final double CLAWOPEN        = CLAWMIN;
         public static final double CLAWMID         = 0.5;
         public static final double CLAWCLOSED      = CLAWMAX;
         public static final double FOUNDATIONOPEN  = 0.0;
         public static final double FOUNDATIONCLOSED = .75;
+        public static final double CAPSTONEATTACHED = .4;
+        public static final double CAPSTONERELEASED = .8;
 
         //vuforia configuration
         public static final String VUFORIA_KEY     = "AUmjH6X/////AAABmeSd/rs+aU4giLmf5DG5vUaAfHFLv0/vAnAFxt5vM6cbn1/nI2sdkRSEf6HZLA/is/+VQY5/i6u5fbJ4TugEN8HOxRwvUvkrAeIpgnMYEe3jdD+dPxhE88dB58mlPfVwIPJc2KF4RE7weuRBoZ8KlrEKbNNu20ommdG7S/HXP9Kv/xocj82rgj+iPEaitftALZ6QaGBdfSl3nzVMK8/KgQJNlSbGic/Wf3VI8zcYmMyDslQPK45hZKlHW6ezxdGgJ7VJCax+Of8u/LEwfzqDqBsuS4/moNBJ1mF6reBKe1hIE2ffVTSvKa2t95g7ht3Z4M6yQdsI0ZaJ6AGnl1wTlm8Saoal4zTbm/VCsmZI081h";
