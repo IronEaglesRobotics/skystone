@@ -59,6 +59,7 @@ public class Robot {
         this.lift.setMode(this.liftMode);
         this.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        //arm
         this.collector = this.hardwareMap.dcMotor.get(Constants.ARM);
         this.collector.setDirection(REVERSE);
         this.collector.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -66,6 +67,7 @@ public class Robot {
         this.collector.setMode(armMode);
         this.collector.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        //linear slide
         this.extend = this.hardwareMap.dcMotor.get(Constants.EXTEND);
         this.extend.setDirection(FORWARD);
         this.extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -111,7 +113,6 @@ public class Robot {
      * @param speed The speed to which the motor will be set.
      */
     private void setMotorPosition(DcMotor motor, int position, double speed) {
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setTargetPosition(position);
         motor.setPower(speed);
     }
