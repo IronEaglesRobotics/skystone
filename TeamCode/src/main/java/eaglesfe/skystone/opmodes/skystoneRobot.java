@@ -101,7 +101,7 @@ public class skystoneRobot {
         this.leftFoundation.setPosition(1);
 
         this.rightFoundation = this.hardwareMap.servo.get(Constants.RIGHTFOUNDATION);
-        this.rightFoundation.scaleRange(Constants.FOUNDATIONOPEN, Constants.FOUNDATIONCLOSED);
+        this.rightFoundation.scaleRange(Constants.FOUNDATIONOPEN, Constants.FOUNDATIONCLOSED + 0.1);
         this.rightFoundation.setDirection(Servo.Direction.REVERSE);
         this.rightFoundation.setPosition(1);
 
@@ -132,7 +132,7 @@ public class skystoneRobot {
             this.tracker = new SkystoneBirdseyeTracker();
             this.tracker.setShowCameraPreview(true);
             this.tracker.setVuforiaKey(Constants.VUFORIA_KEY);
-            this.tracker.setWebcamNames(Constants.POS_CAM);
+//            this.tracker.setWebcamNames(Constants.POS_CAM);
             this.tracker.setCameraForwardOffset(Constants.CAM_X_OFFSET);
             this.tracker.setCameraVerticalOffset(Constants.CAM_Z_OFFSET);
             this.tracker.cameraLeftOffsetMm(Constants.CAM_Y_OFFSET);
@@ -252,13 +252,27 @@ public class skystoneRobot {
         checkOrientation();
         double startingPosition = globalAngle;
         double targetPosition = startingPosition + degrees;
-        while((Math.abs(globalAngle - startingPosition) < degrees - 5 || (Math.abs(globalAngle - startingPosition) > degrees + 5)) && opmode.opModeIsActive()) {
+        while(
+                ((Math.abs(globalAngle - startingPosition) < (Math.abs(degrees) - 2))
+                        || (Math.abs(globalAngle - startingPosition) > (Math.abs(degrees) + 2))
+                )
+//                        - 5 || (Math.abs(globalAngle - startingPosition) > degrees + 5))
+                        && opmode.opModeIsActive()) {
             drive.setInput(0,0,Math.copySign(speed, globalAngle < targetPosition ? 1 : -1));
 //            drive.setInput(0,0,Math.copySign(speed, globalAngle < startingPosition ? 1 : -1));
 //            (Math.abs(targetPosition - globalAngle)/degrees)
+//            opmode.telemetry.addData("angles: global angle" ,+ globalAngle + "targetPosition : " + targetPosition);
+//            opmode.telemetry.update();
             checkOrientation();
         }
         return true;
+    }
+
+    public String getAcceleration() {
+        return "X: " + imu.getLinearAcceleration().xAccel
+//                + " Y: " + imu.getLinearAcceleration().yAccel
+//                + " Z: " + imu.getLinearAcceleration().zAccel
+        ;
     }
 
 //    public boolean angleTurnRelative(double degrees, double speed) {
@@ -344,8 +358,8 @@ public class skystoneRobot {
         boolean isFoundationClamped = leftFoundation.getPosition() > 0.5;
 
         if(foundationGrab) {
-            this.leftFoundation.setPosition(isFoundationClamped ? Constants.FOUNDATIONOPEN : Constants.FOUNDATIONCLOSED);
-            this.rightFoundation.setPosition(isFoundationClamped ? Constants.FOUNDATIONOPEN : Constants.FOUNDATIONCLOSED);
+            this.leftFoundation.setPosition(isFoundationClamped ? 0 : 1);
+            this.rightFoundation.setPosition(isFoundationClamped ? 0 : 1);
 
         }
     }
@@ -424,8 +438,8 @@ public class skystoneRobot {
         public static final double CLAWOPEN        = CLAWMIN;
         public static final double CLAWMID         = 0.5;
         public static final double CLAWCLOSED      = CLAWMAX;
-        public static final double FOUNDATIONOPEN  = 0.0;
-        public static final double FOUNDATIONCLOSED = .75;
+        public static final double FOUNDATIONOPEN  = 0.02;
+        public static final double FOUNDATIONCLOSED = 0.8;
         public static final double CAPSTONEATTACHED = .4;
         public static final double CAPSTONERELEASED = .8;
 

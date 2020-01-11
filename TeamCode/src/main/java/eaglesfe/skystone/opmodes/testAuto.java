@@ -11,6 +11,7 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
+@Disabled
 @Autonomous (name = "test", group = "blue competition")
 public class testAuto extends LinearOpMode{
 
