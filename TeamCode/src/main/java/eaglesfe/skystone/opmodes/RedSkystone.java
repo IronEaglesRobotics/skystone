@@ -31,7 +31,6 @@ public class RedSkystone extends LinearOpMode {
         steps.put("start", new Step("moving forward..", 2000) {
             @Override
             public void enter() {
-                robot.settleAngle();
                 robot.drive.setTargetPositionRelative(23,.5);
                 robot.setArmPosition(.3, .3);
             }

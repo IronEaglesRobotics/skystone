@@ -26,8 +26,8 @@ public class skystoneTeleop extends OpMode {
         double x = -gamepad1.left_stick_x / inputScale;
         double y = gamepad1.left_stick_y / inputScale;
         double z = Math.pow(gamepad1.right_stick_x, 3) / inputScale;
-        double intakeInputIn = gamepad1.left_trigger;
-        double intakeInputOut = gamepad1.right_trigger;
+        double intakeInputIn = gamepad1.right_trigger;
+        double intakeInputOut = gamepad1.left_trigger;
 
         robot.setDriveInput(x, y, z);
         robot.setIntakeSpeed(intakeInputIn - intakeInputOut);
@@ -57,8 +57,16 @@ public class skystoneTeleop extends OpMode {
         this.prevLargeGrab = gamepad2.b;
         this.prevFoundationGrab = gamepad2.y;
 
-        //telemetry.addData("acceleration", robot.getAcceleration());
-
-        telemetry.update();
+//        telemetry.addData("acceleration", robot.getAcceleration());
+//        telemetry.addData("Rotation", robot.getOrientation());
+//        telemetry.addData("Global angle", robot.getOrientation());
+//        telemetry.addData("Arm", robot.getArmOpen());
+//        telemetry.addData("Block Distance : ", robot.getBlockDistanceInch());
+//        telemetry.addData("Have Block : ", robot.haveBlock());
+//        telemetry.addData("Input In: ", intakeInputIn);
+//        telemetry.addData("Input out: ", intakeInputOut);
+//
+//
+//        telemetry.update();
     }
 }

@@ -1,9 +1,6 @@
 package eaglesfe.skystone.opmodes;
 
-import com.eaglesfe.birdseye.BirdseyeServer;
-import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.HashMap;
@@ -11,18 +8,13 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
-@Disabled
+
 @Autonomous (name = "test", group = "blue competition")
 public class testAuto extends LinearOpMode{
-
-
-    private SkystoneBirdseyeTracker tracker;
 
     @Override
     public void runOpMode() {
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
-        robot.setVisionEnabled(true);
-        robot.useCameraVuforia();
 
         //map of the steps
         Map<String, Step> steps = new HashMap<>();
@@ -31,7 +23,6 @@ public class testAuto extends LinearOpMode{
         steps.put("start", new Step("starting...") {
             @Override
             public void enter() {
-                robot.settleAngle();
             }
 
             @Override
@@ -41,11 +32,11 @@ public class testAuto extends LinearOpMode{
 
             @Override
             public String leave() {
-                return "turn";
+                return "turn1";
             }
         });
 
-        steps.put("turn", new Step("turning...") {
+        steps.put("turn1", new Step("turning...") {
             @Override
             public void enter() {
 
@@ -53,12 +44,31 @@ public class testAuto extends LinearOpMode{
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnRelative(90, .2, testAuto.this);
+                return robot.angleTurnRelative(90,5, testAuto.this);
             }
 
             @Override
             public String leave() {
-                return null;
+                sleep(500);
+                return "turn2";
+            }
+        });
+
+        steps.put("turn2", new Step("turning...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.angleTurnRelative(-90, .5, testAuto.this);
+            }
+
+            @Override
+            public String leave() {
+                sleep(500);
+                return "turn1";
             }
         });
 
