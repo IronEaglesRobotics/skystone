@@ -9,7 +9,7 @@ import java.util.Map;
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
 
-@Autonomous (name = "Saber red foundation", group = "blue competition")
+@Autonomous (name = "Saber red foundation", group = "red competition")
 public class SaberRedFoundation extends LinearOpMode {
 
     private long startingTime;
@@ -125,16 +125,15 @@ public class SaberRedFoundation extends LinearOpMode {
             }
         });
 
-        steps.put("small turn", new Step("quick turn ", 1600) {
+        steps.put("small turn", new Step("quick turn ", 2000) {
             @Override
             public void enter() {
                 robot.setArmPosition(.2,.4);
-                robot.drive.setInput(0,0,-.3);
             }
 
             @Override
             public boolean isFinished() {
-                return false;
+                return robot.angleTurnAbsolute(90,SaberRedFoundation.this);
             }
 
             @Override
@@ -169,7 +168,7 @@ public class SaberRedFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-10, SaberRedFoundation.this);
+                return robot.drive.straightMove(-15, SaberRedFoundation.this);
             }
 
             @Override

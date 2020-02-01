@@ -129,12 +129,11 @@ public class SaberBlueFoundation extends LinearOpMode {
             @Override
             public void enter() {
                 robot.setArmPosition(.2,.4);
-                robot.drive.setInput(0,0,.3);
             }
 
             @Override
             public boolean isFinished() {
-                return false;
+                return robot.angleTurnAbsolute(-90,SaberBlueFoundation.this);
             }
 
             @Override
@@ -169,7 +168,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-10, SaberBlueFoundation.this);
+                return robot.drive.straightMove(-15, SaberBlueFoundation.this);
             }
 
             @Override
@@ -186,7 +185,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return !robot.drive.isBusy();
+                return true;
             }
 
             @Override

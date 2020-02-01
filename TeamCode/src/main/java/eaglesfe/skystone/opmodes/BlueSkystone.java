@@ -153,7 +153,7 @@ public class BlueSkystone extends LinearOpMode {
             }
         });
 
-        steps.put("suck", new Step("nice...", 2000) {
+        steps.put("suck", new Step("nice...", 1750) {
             @Override
             public void enter() {
                 robot.drive.recordPoint();
@@ -199,7 +199,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnRelative(-90, .2,BlueSkystone.this);
+                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
             }
 
             @Override
@@ -216,7 +216,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-65 + moveMod, BlueSkystone.this);
+                return robot.drive.straightMove(-70 + moveMod, BlueSkystone.this);
             }
 
             @Override
@@ -233,7 +233,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnRelative(-90, .2, BlueSkystone.this);
+                return robot.angleTurnAbsolute(-180,BlueSkystone.this);
             }
 
             @Override
@@ -250,7 +250,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-12,BlueSkystone.this);
+                return robot.drive.straightMove(-11,BlueSkystone.this);
             }
 
             @Override
@@ -284,7 +284,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(10,BlueSkystone.this);
+                return robot.drive.straightMove(16,BlueSkystone.this);
             }
 
             @Override
@@ -301,7 +301,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnRelative(90, .4, BlueSkystone.this);
+                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
             }
 
             @Override
