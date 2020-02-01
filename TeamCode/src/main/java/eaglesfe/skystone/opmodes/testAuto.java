@@ -27,47 +27,12 @@ public class testAuto extends LinearOpMode{
 
             @Override
             public boolean isFinished() {
-                return true;
+                robot.displayTelemetry(testAuto.this);
+                return false;
             }
 
             @Override
             public String leave() {
-                return "turn1";
-            }
-        });
-
-        steps.put("turn1", new Step("turning...") {
-            @Override
-            public void enter() {
-
-            }
-
-            @Override
-            public boolean isFinished() {
-                return robot.angleTurnRelative(90,5, testAuto.this);
-            }
-
-            @Override
-            public String leave() {
-                sleep(500);
-                return "turn2";
-            }
-        });
-
-        steps.put("turn2", new Step("turning...") {
-            @Override
-            public void enter() {
-
-            }
-
-            @Override
-            public boolean isFinished() {
-                return robot.angleTurnRelative(-90, .5, testAuto.this);
-            }
-
-            @Override
-            public String leave() {
-                sleep(500);
                 return "turn1";
             }
         });

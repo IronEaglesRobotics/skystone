@@ -39,6 +39,7 @@ public class skystoneRobot {
     private DistanceSensor blockDistance;
     private Thread sensors;
     private GlobalAngle worldwideAngle;
+    private double origin;
 
     private final double wheelDiameter = 4.0;
     private final double wheelCircumference = Math.PI * wheelDiameter;
@@ -94,7 +95,6 @@ public class skystoneRobot {
         this.arm.setTargetPosition(0);
         this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
         //intake motor
         this.intakeLeft = this.hardwareMap.dcMotor.get(Constants.INTAKELEFT);
         this.intakeLeft.setDirection(REVERSE);
@@ -133,8 +133,12 @@ public class skystoneRobot {
 
         this.blockDistance = this.hardwareMap.get(DistanceSensor.class, "BLOCKDISTANCE");
 
+        this.origin = worldwideAngle.globalAngle;
+
         //is initialized
         this.isInitialized = true;
+
+
     }
 
     public boolean haveBlock() {
@@ -204,17 +208,59 @@ public class skystoneRobot {
             drive.setInput(speed, 0,
                     ((worldwideAngle.globalAngle - startingPosition) / 25) * .2);
         }
+
+        drive.setInput(0,0,0);
+
+        return true;
+    }
+
+
+    public boolean suckStraight(double speed, LinearOpMode opMode) {
+
+        double startingPosition = worldwideAngle.globalAngle;
+
+        while (!haveBlock() && opMode.opModeIsActive()) {
+            drive.setInput(0, speed,((worldwideAngle.globalAngle - startingPosition) / 25) * .2);
+        }
+
+        drive.setInput(0,0,0);
+
         return true;
     }
 
     public boolean angleTurnRelative(double degrees, double speed, LinearOpMode opmode) {
         double startingPosition = worldwideAngle.globalAngle;
         double targetPosition = startingPosition + degrees;
-        while (Math.abs(targetPosition - worldwideAngle.globalAngle) > 2 && opmode.opModeIsActive()) {
-            //drive.setInput(0, 0, Math.copySign(Math.abs(Math.abs(worldwideAngle.globalAngle - startingPosition + degrees)/degrees) + .05, Math.abs(worldwideAngle.globalAngle - startingPosition) < degrees ? 1 : -1));
-            double angleDifference = targetPosition - worldwideAngle.globalAngle;
-            double absoluteAngleDifference = Math.abs(angleDifference);
-            drive.setInput(0, 0, Math.copySign((absoluteAngleDifference > 30) ? .7 : .1, angleDifference));
+        double boops = opmode.getRuntime();
+        while (opmode.getRuntime() < boops + 0.5 && opmode.opModeIsActive()) {
+            if (Math.abs(targetPosition - worldwideAngle.globalAngle) > 1) {
+                double angleDifference = targetPosition - worldwideAngle.globalAngle;
+                double absoluteAngleDifference = Math.abs(angleDifference);
+
+                drive.setInput(0, 0, Math.copySign((absoluteAngleDifference > 30) ? .7 : .1, -angleDifference));
+                boops = opmode.getRuntime();
+            } else {
+                drive.setInput(0, 0, 0);
+                opmode.sleep(1);
+            }
+        }
+        drive.setInput(0,0,0);
+        return true;
+    }
+
+    public boolean angleTurnAbsolute(double degrees, LinearOpMode opmode) {
+        double targetPosition = origin + degrees;
+        double boops = opmode.getRuntime();
+        while (opmode.getRuntime() < boops + 0.5 && opmode.opModeIsActive()) {
+            if (Math.abs(targetPosition - worldwideAngle.globalAngle) > 1) {
+                double angleDifference = targetPosition - worldwideAngle.globalAngle;
+                double absoluteAngleDifference = Math.abs(angleDifference);
+                drive.setInput(0, 0, Math.copySign((absoluteAngleDifference > 30) ? .7 : .1, -angleDifference));
+                boops = opmode.getRuntime();
+            } else {
+                drive.setInput(0, 0, 0);
+                opmode.sleep(1);
+            }
         }
         drive.setInput(0,0,0);
         return true;
@@ -361,6 +407,11 @@ public class skystoneRobot {
         } else {
             return cLeft.alpha() > cRight.alpha() ? 1.0f : 0.0f;
         }
+    }
+
+    public void displayTelemetry(LinearOpMode opMode) {
+        opMode.telemetry.addData("angle", worldwideAngle.globalAngle);
+        opMode.telemetry.update();
     }
 
     /* ================== INTAKE =================== */

@@ -63,28 +63,38 @@ public class MecanumDrive implements DriveBase {
         setTargetPoint(flTicks, frTicks, blTicks, brTicks);
 
         while (
-                //ends if all motors are in range or opmode is no longer active
                 (Math.abs(targetInchDifference()) > 2) && opMode.opModeIsActive())
         {
-
-//            flPower = z + x + y;    frPower = -z - x + y;
-//            blPower = z - x + y;    brPower = -z + x + y;
-
-//            frontLeft.setPower(- ((worldwideAngle.globalAngle - startingPosition) / 25) * .2 + getPower(flTicks, frontLeft));
-//            frontRight.setPower( ((worldwideAngle.globalAngle - startingPosition) / 25) * .2 + getPower(frTicks,frontRight));
-//            backLeft.setPower(- ((worldwideAngle.globalAngle - startingPosition) / 25) * .2 + getPower(blTicks, backLeft));
-//            backRight.setPower(((worldwideAngle.globalAngle - startingPosition) / 25) * .2 + getPower(brTicks, backRight));
-
             double absoluteDistance = Math.abs(targetInchDifference());
-//            opMode.telemetry.addData("distance", targetInchDifference());
-//            opMode.telemetry.addData("absolute distance", absoluteDistance);
-//            opMode.telemetry.update();
             setInput(0, Math.copySign((absoluteDistance > 16) ? .70 : .2 , -targetInchDifference()) ,((worldwideAngle.globalAngle - startingPosition) / 25) * .2);
 
         }
-
         setInput(0,0,0);
+        return true;
+    }
 
+    public boolean straightMove(double inches, double speed, LinearOpMode opMode) {
+        int ticktolerance = 200;
+
+        ticks = (int)((inches / wheelCircumference) * 560);
+
+        double startingPosition = worldwideAngle.globalAngle;
+
+        flTicks = frontLeft.getCurrentPosition() + ticks;
+        frTicks = frontRight.getCurrentPosition() + ticks;
+        blTicks = backLeft.getCurrentPosition() + ticks;
+        brTicks = backRight.getCurrentPosition() + ticks;
+
+        setTargetPoint(flTicks, frTicks, blTicks, brTicks);
+
+        while (
+                (Math.abs(targetInchDifference()) > 2) && opMode.opModeIsActive())
+        {
+            double absoluteDistance = Math.abs(targetInchDifference());
+            setInput(0, Math.copySign((absoluteDistance > 16) ? speed : .2 , -targetInchDifference()) ,((worldwideAngle.globalAngle - startingPosition) / 25) * .2);
+
+        }
+        setInput(0,0,0);
         return true;
     }
 
@@ -107,6 +117,7 @@ public class MecanumDrive implements DriveBase {
                 (motor.getCurrentPosition() < target) ? 1 : -1);
     }
 
+    @Deprecated
     public boolean isBusy() {
         return this.getRunMode() != RunMode.RUN_TO_POSITION
                 || this.frontLeft.isBusy()
@@ -145,6 +156,7 @@ public class MecanumDrive implements DriveBase {
         this.targetPoint[3] = br;
     }
 
+    @Deprecated
     public void setTargetPositionRelative(double inches, double speed) {
         int ticks = (int)((inches / wheelCircumference) * 560);
         this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);
@@ -158,6 +170,7 @@ public class MecanumDrive implements DriveBase {
         this.setPower(speed);
     }
 
+    @Deprecated
     public void setTargetStrafePositionRelative(double inches, double power) {
         int ticks = (int)((inches / wheelCircumference) * 560);
         this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);
@@ -171,6 +184,7 @@ public class MecanumDrive implements DriveBase {
         this.setStrafePower(power);
     }
 
+    @Deprecated
     public void setForwardTargetPositionRelative(double inches, double power) {
         int ticks = (int)((inches / wheelCircumference) * 560);
         this.setRunMode(RunMode.STOP_AND_RESET_ENCODER);

@@ -44,7 +44,7 @@ public class BlueFoundation extends LinearOpMode{
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-24, BlueFoundation.this);
+                return robot.drive.straightMove(-23, BlueFoundation.this);
             }
 
             @Override
