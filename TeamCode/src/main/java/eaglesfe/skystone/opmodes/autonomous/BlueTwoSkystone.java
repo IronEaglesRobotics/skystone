@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,6 +8,7 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
+import eaglesfe.skystone.skystoneRobot;
 
 @Autonomous(name = "blue two skystone", group = "blue competition")
 public class BlueTwoSkystone extends LinearOpMode {
@@ -26,7 +27,7 @@ public class BlueTwoSkystone extends LinearOpMode {
         steps.put("start", new Step("moving forward..", 3500) {
         @Override
         public void enter() {
-            robot.setArmPosition(.3, .3);
+            robot.setArmPosition(.3, .4);
         }
 
         @Override

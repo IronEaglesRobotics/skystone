@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,9 +8,10 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
+import eaglesfe.skystone.skystoneRobot;
 
-@Autonomous (name = "red skystone", group = "red competition")
-public class RedSkystone extends LinearOpMode {
+@Autonomous (name = "blue skystone", group = "blue competition")
+public class BlueSkystone extends LinearOpMode {
 
     int tempTicks = 0;
     int moveMod = 0;
@@ -20,8 +21,10 @@ public class RedSkystone extends LinearOpMode {
     @Override
     public void runOpMode() {
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
+//        robot.setVisionEnabled(true);
+//        robot.useCameraVuforia();
 
-        /*================================================================================================*/
+/*================================================================================================*/
 
         //map of the steps
         Map<String, Step> steps = new HashMap<>();
@@ -29,12 +32,12 @@ public class RedSkystone extends LinearOpMode {
         steps.put("start", new Step("moving forward..", 3500) {
             @Override
             public void enter() {
-                robot.setArmPosition(.3, .3);
+                robot.setArmPosition(.3, .4);
             }
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(22, .5,RedSkystone.this);
+                return robot.drive.straightMove(22, .5,BlueSkystone.this);
             }
 
             @Override
@@ -52,7 +55,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.armHomed(RedSkystone.this);
+                return robot.armHomed(BlueSkystone.this);
             }
 
             @Override
@@ -80,15 +83,15 @@ public class RedSkystone extends LinearOpMode {
                     case 0 :
                         robot.drive.setInput(0,0,0);
                         position = 0;
-                        return "center";
+                        return "left";
                     case 1 :
                         robot.drive.setInput(0,0,0);
                         position = 4;
-                        return "right";
+                        return "center";
                     case 2 :
                         robot.drive.setInput(0,0,0);
                         position = 8;
-                        return "left";
+                        return "right";
                     default:
                         robot.drive.setInput(0,0,0);
                         return "center";
@@ -100,12 +103,12 @@ public class RedSkystone extends LinearOpMode {
         steps.put("left", new Step("moving to left...",1900) {
             @Override
             public void enter() {
-                moveMod = - 20;
+                moveMod = - 6;
             }
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(2900, -.2, RedSkystone.this);
+                return robot.corectingStrafe(1650, -.2, BlueSkystone.this);
             }
 
             @Override
@@ -118,12 +121,12 @@ public class RedSkystone extends LinearOpMode {
         steps.put("center", new Step("moving to center...",2500) {
             @Override
             public void enter() {
-                moveMod = - 14;
+                moveMod = - 12;
             }
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(1600, -.2, RedSkystone.this);
+               return robot.corectingStrafe(1600, .2, BlueSkystone.this);
             }
 
             @Override
@@ -136,12 +139,12 @@ public class RedSkystone extends LinearOpMode {
         steps.put("right", new Step("moving to right...",3000) {
             @Override
             public void enter() {
-                moveMod = -6;
+                moveMod = - 22;
             }
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(1650, .2, RedSkystone.this);
+                return robot.corectingStrafe(2900, .2, BlueSkystone.this);
             }
 
             @Override
@@ -161,7 +164,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.suckStraight(.35,RedSkystone.this);
+                return robot.suckStraight(.35,BlueSkystone.this);
             }
 
             @Override
@@ -179,7 +182,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-robot.drive.inchDifference(), RedSkystone.this);
+                return robot.drive.straightMove(-robot.drive.inchDifference(), BlueSkystone.this);
             }
 
             @Override
@@ -197,7 +200,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(90, RedSkystone.this);
+                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
             }
 
             @Override
@@ -214,7 +217,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-70 + moveMod, RedSkystone.this);
+                return robot.drive.straightMove(-70 + moveMod, BlueSkystone.this);
             }
 
             @Override
@@ -231,7 +234,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(180,RedSkystone.this);
+                return robot.angleTurnAbsolute(-180,BlueSkystone.this);
             }
 
             @Override
@@ -248,7 +251,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-11,RedSkystone.this);
+                return robot.drive.straightMove(-11,BlueSkystone.this);
             }
 
             @Override
@@ -282,7 +285,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(16,RedSkystone.this);
+                return robot.drive.straightMove(16,BlueSkystone.this);
             }
 
             @Override
@@ -299,7 +302,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(90,RedSkystone.this);
+                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
             }
 
             @Override
@@ -335,7 +338,7 @@ public class RedSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(36,RedSkystone.this);
+                return robot.drive.straightMove(36,BlueSkystone.this);
             }
 
             @Override
@@ -372,7 +375,7 @@ public class RedSkystone extends LinearOpMode {
         Steps stepsRunner = new Steps(steps, this);
         stepsRunner.runStepsMap();
 
-        /*================================================================================================*/
+/*================================================================================================*/
 
         //end of autonomous
         robot.stopAllMotors();

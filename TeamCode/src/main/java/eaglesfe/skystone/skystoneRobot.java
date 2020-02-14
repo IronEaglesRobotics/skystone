@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone;
 
 import com.eaglesfe.birdseye.skystone.SkystoneBirdseyeTracker;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -14,32 +14,48 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import eaglesfe.common.MecanumDrive;
+import eaglesfe.skystone.subsystems.GlobalAngle;
+import eaglesfe.skystone.subsystems.PIDController;
+import eaglesfe.skystone.subsystems.SensorThread;
 
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
 public class skystoneRobot {
 
-    //hardware map
+    /** ---------- hardware ---------- **/
+
     public final HardwareMap hardwareMap;
     public MecanumDrive drive;
-    private SkystoneBirdseyeTracker tracker;
+
     private DcMotor arm;
     private DcMotor intakeLeft;
     private DcMotor intakeRight;
+
     private Servo wrist;
     private Servo claw;
+    private Servo leftIntakeServo;
+    private Servo rightIntakeServo;
     private Servo leftFoundation;
     private Servo rightFoundation;
     private Servo capstoneRelease;
+
     private BNO055IMU imu;
+
     private ColorSensor cLeft;
     private ColorSensor cRight;
-    private DigitalChannel armSwitch;
     private DistanceSensor blockDistance;
+
+    private DigitalChannel armSwitch;
+
+    /** ---------- services ---------- **/
+
+    private SkystoneBirdseyeTracker tracker;
+
     private Thread sensors;
     private GlobalAngle worldwideAngle;
     private double origin;
+    private PIDController pidRotate;
 
     private final double wheelDiameter = 4.0;
     private final double wheelCircumference = Math.PI * wheelDiameter;
@@ -48,14 +64,18 @@ public class skystoneRobot {
 
     public boolean isInitialized;
 
-    //initialize hardware map
+    /** ---------- initialize hardware map ---------- **/
+
     public skystoneRobot(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
         initializeHardware();
     }
 
-    //initialize hardware
+    /** ---------- initialize hardware ----------**/
+
     private void initializeHardware() {
+
+        /** gyro hardware **/
 
         this.imu = this.hardwareMap.get(BNO055IMU.class, Constants.GYRO);
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -66,43 +86,51 @@ public class skystoneRobot {
         parameters.loggingEnabled = false;
         this.imu.initialize(parameters);
 
-        this.worldwideAngle = new GlobalAngle();
+        /** gyro thread **/
 
+        this.worldwideAngle = new GlobalAngle();
         this.sensors = new Thread(new SensorThread(imu, this.worldwideAngle));
         sensors.start();
         this.globalAngle = this.worldwideAngle.globalAngle;
 
-        //drive
+        /** drive **/
+
         DcMotor frontLeft = this.hardwareMap.dcMotor.get(Constants.FRONT_LEFT);
         frontLeft.setDirection(FORWARD);
+
         DcMotor frontRight = this.hardwareMap.dcMotor.get(Constants.FRONT_RIGHT);
         frontRight.setDirection(REVERSE);
+
         DcMotor backLeft = this.hardwareMap.dcMotor.get(Constants.BACK_LEFT);
         backLeft.setDirection(FORWARD);
+
         DcMotor backRight = this.hardwareMap.dcMotor.get(Constants.BACK_RIGHT);
         backRight.setDirection(REVERSE);
+
         this.drive = new MecanumDrive(frontLeft, frontRight, backLeft, backRight, worldwideAngle);
 
-        //stacking arm
+        /** stacking arm **/
+
         this.arm = this.hardwareMap.dcMotor.get(Constants.ARM);
         this.arm.setDirection(DcMotorSimple.Direction.FORWARD);
         this.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.armMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
         this.arm.setMode(armMode);
         this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         this.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.arm.setTargetPosition(0);
         this.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        //intake motor
+        /** intake **/
+
         this.intakeLeft = this.hardwareMap.dcMotor.get(Constants.INTAKELEFT);
         this.intakeLeft.setDirection(REVERSE);
 
         this.intakeRight = this.hardwareMap.dcMotor.get(Constants.INTAKERIGHT);
         this.intakeRight.setDirection(FORWARD);
 
-        //stacking servo
+        /** claw and wrist **/
+
         this.wrist = this.hardwareMap.servo.get(Constants.WRIST);
         this.wrist.scaleRange(Constants.WRISTMINHB, Constants.WRISTMAXHB);
         this.wrist.setPosition(Constants.WRISTMIDDLE);
@@ -110,8 +138,21 @@ public class skystoneRobot {
         this.claw = this.hardwareMap.servo.get(Constants.CLAW);
         this.claw.scaleRange(Constants.CLAWMIN, Constants.CLAWMAX);
 
+        /** intake lift **/
+
+        this.leftIntakeServo = this.hardwareMap.servo.get(Constants.LEFTINTAKESERVO);
+        this.leftIntakeServo.setDirection(Servo.Direction.FORWARD);
+        this.leftIntakeServo.scaleRange(Constants.INTAKEDOWN, Constants.INTAKEUP);
+        this.leftIntakeServo.setPosition(1);
+
+        this.rightIntakeServo = this.hardwareMap.servo.get(Constants.RIGHTINTAKESERVO);
+        this.rightIntakeServo.setDirection(Servo.Direction.REVERSE);
+        this.rightIntakeServo.scaleRange(Constants.INTAKEDOWN, Constants.INTAKEUP);
+        this.rightIntakeServo.setPosition(1);
+
         this.leftFoundation = this.hardwareMap.servo.get(Constants.LEFTFOUNDATION);
         this.leftFoundation.scaleRange(Constants.FOUNDATIONOPEN, Constants.FOUNDATIONCLOSED);
+        this.leftFoundation.setDirection(Servo.Direction.FORWARD);
         this.leftFoundation.setPosition(1);
 
         this.rightFoundation = this.hardwareMap.servo.get(Constants.RIGHTFOUNDATION);
@@ -271,7 +312,6 @@ public class skystoneRobot {
         double targetPosition = startingPosition + degrees;
         double difference = 0;
         while (Math.abs(difference) > Math.abs(degrees) && opmode.opModeIsActive()) {
-            //drive.setInput(0, 0, Math.copySign(Math.abs(Math.abs(worldwideAngle.globalAngle - startingPosition + degrees)/degrees) + .05, Math.abs(worldwideAngle.globalAngle - startingPosition) < degrees ? 1 : -1));
             double angleDifference = targetPosition - worldwideAngle.globalAngle;
             double absoluteAngleDifference = Math.abs(angleDifference);
             opmode.telemetry.addData("absolute angle difference", absoluteAngleDifference);
@@ -285,16 +325,10 @@ public class skystoneRobot {
         return true;
     }
 
-    public boolean isDriveBusy() {
-        return drive.isBusy();
-    }
-
     public void stopAllMotors() {
         drive.setInput(0, 0, 0);
         setIntakeSpeed(0);
     }
-
-    //specific arm speed setter
 
     private DcMotor.RunMode armMode;
 
@@ -363,6 +397,20 @@ public class skystoneRobot {
         }
     }
 
+    public void setIntakeServos(boolean moveIntake, boolean half) {
+        boolean isFoundationClamped = rightIntakeServo.getPosition() > 0.5;
+        boolean isAboveHalf = rightIntakeServo.getPosition() > .15;
+
+        if (moveIntake) {
+            this.leftIntakeServo.setPosition(isFoundationClamped ? 0 : 1);
+            this.rightIntakeServo.setPosition(isFoundationClamped? 0 : 1);
+        }
+        if (half) {
+            this.leftIntakeServo.setPosition(isAboveHalf ? 0 : .35);
+            this.rightIntakeServo.setPosition(isAboveHalf ? 0 : .35);
+        }
+    }
+
     public void foundationGrab(boolean foundationGrab) {
         boolean isFoundationClamped = leftFoundation.getPosition() > 0.5;
 
@@ -423,7 +471,8 @@ public class skystoneRobot {
     }
 
     public class Constants {
-        //hardware map things
+
+        /** ---------- hardware map strings ---------- **/
         public static final String FRONT_LEFT = "FrontLeft";
         public static final String FRONT_RIGHT = "FrontRight";
         public static final String BACK_LEFT = "BackLeft";
@@ -433,16 +482,16 @@ public class skystoneRobot {
         public static final String INTAKERIGHT = "IntakeRight";
         public static final String WRIST = "Wrist";
         public static final String CLAW = "Claw";
+        public static final String LEFTINTAKESERVO = "LeftIntakeServo";
+        public static final String RIGHTINTAKESERVO = "RightIntakeServo";
         public static final String LEFTFOUNDATION = "LeftFoundation";
         public static final String RIGHTFOUNDATION = "RightFoundation";
         public static final String CAPSTONE = "Capstone";
         public static final String GYRO = "IMU";
         public static final String POS_CAM = "PositionCamera";
 
-        //number things
+        /** ---------- number constants ---------- **/
         public static final int MAX_ARM_TICKS = 1850;
-        public static final double WRISTMAX = 1.0;
-        public static final double WRISTMIN = 0.0;
         public static final double WRISTRATE = 0.005;
         public static final double WRISTMAXHB = 0.975;
         public static final double WRISTMIDDLE = 0.44;
@@ -452,12 +501,14 @@ public class skystoneRobot {
         public static final double CLAWOPEN = CLAWMIN;
         public static final double CLAWMID = 0.5;
         public static final double CLAWCLOSED = CLAWMAX;
+        public static final double INTAKEUP = 0.9;
+        public static final double INTAKEDOWN = 0.1;
         public static final double FOUNDATIONOPEN = 0.02;
         public static final double FOUNDATIONCLOSED = 0.8;
         public static final double CAPSTONEATTACHED = .4;
         public static final double CAPSTONERELEASED = .8;
 
-        //vuforia configuration
+        /** ---------- Vuforia constants ---------- **/
         public static final String VUFORIA_KEY = "AUmjH6X/////AAABmeSd/rs+aU4giLmf5DG5vUaAfHFLv0/vAnAFxt5vM6cbn1/nI2sdkRSEf6HZLA/is/+VQY5/i6u5fbJ4TugEN8HOxRwvUvkrAeIpgnMYEe3jdD+dPxhE88dB58mlPfVwIPJc2KF4RE7weuRBoZ8KlrEKbNNu20ommdG7S/HXP9Kv/xocj82rgj+iPEaitftALZ6QaGBdfSl3nzVMK8/KgQJNlSbGic/Wf3VI8zcYmMyDslQPK45hZKlHW6ezxdGgJ7VJCax+Of8u/LEwfzqDqBsuS4/moNBJ1mF6reBKe1hIE2ffVTSvKa2t95g7ht3Z4M6yQdsI0ZaJ6AGnl1wTlm8Saoal4zTbm/VCsmZI081h";
         public static final float CAM_X_OFFSET = -8.0f;
         public static final float CAM_Y_OFFSET = 0.0f;

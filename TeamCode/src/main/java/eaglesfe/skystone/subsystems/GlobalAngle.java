@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.subsystems;
 
 public class GlobalAngle {
 

@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,9 +8,10 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
+import eaglesfe.skystone.skystoneRobot;
 
-@Autonomous (name = "Saber blue foundation", group = "blue competition")
-public class SaberBlueFoundation extends LinearOpMode {
+@Autonomous (name = "new red foundation", group = "red competition")
+public class RedFoundation extends LinearOpMode {
 
     private long startingTime;
 
@@ -29,7 +30,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(1800, .4, SaberBlueFoundation.this);
+                return robot.corectingStrafe(1800, -.4, RedFoundation.this);
             }
 
             @Override
@@ -46,7 +47,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-26, SaberBlueFoundation.this);
+                return robot.drive.straightMove(-30, RedFoundation.this);
             }
 
             @Override
@@ -80,7 +81,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(35 , SaberBlueFoundation.this);
+                return robot.drive.straightMove(41, RedFoundation.this);
             }
 
             @Override
@@ -116,7 +117,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(2600, -.4, SaberBlueFoundation.this);
+                return robot.corectingStrafe(2600, .4, RedFoundation.this);
             }
 
             @Override
@@ -125,7 +126,7 @@ public class SaberBlueFoundation extends LinearOpMode {
             }
         });
 
-        steps.put("small turn", new Step("quick turn ", 1600) {
+        steps.put("small turn", new Step("quick turn ", 2000) {
             @Override
             public void enter() {
                 robot.setArmPosition(.2,.4);
@@ -133,7 +134,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(-90,SaberBlueFoundation.this);
+                return robot.angleTurnAbsolute(90, RedFoundation.this);
             }
 
             @Override
@@ -151,7 +152,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.armHomed(SaberBlueFoundation.this);
+                return robot.armHomed(RedFoundation.this);
             }
 
             @Override
@@ -168,7 +169,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-15, SaberBlueFoundation.this);
+                return robot.drive.straightMove(-15, RedFoundation.this);
             }
 
             @Override
@@ -185,7 +186,7 @@ public class SaberBlueFoundation extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return true;
+                return !robot.drive.isBusy();
             }
 
             @Override

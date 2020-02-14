@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,11 +8,11 @@ import java.util.Map;
 
 import eaglesfe.common.Step;
 import eaglesfe.common.Steps;
+import eaglesfe.skystone.skystoneRobot;
 
-@Autonomous (name = "blue skystone", group = "blue competition")
-public class BlueSkystone extends LinearOpMode {
+@Autonomous(name = "red two skystone", group = "red competition")
+public class RedTwoSkystone extends LinearOpMode {
 
-    int tempTicks = 0;
     int moveMod = 0;
     int moveModTwo = 0;
     int position = 1;
@@ -20,10 +20,6 @@ public class BlueSkystone extends LinearOpMode {
     @Override
     public void runOpMode() {
         final skystoneRobot robot = new skystoneRobot(hardwareMap);
-//        robot.setVisionEnabled(true);
-//        robot.useCameraVuforia();
-
-/*================================================================================================*/
 
         //map of the steps
         Map<String, Step> steps = new HashMap<>();
@@ -31,12 +27,12 @@ public class BlueSkystone extends LinearOpMode {
         steps.put("start", new Step("moving forward..", 3500) {
             @Override
             public void enter() {
-                robot.setArmPosition(.3, .3);
+                robot.setArmPosition(.3, .4);
             }
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(22, .5,BlueSkystone.this);
+                return robot.drive.straightMove(24, .5,RedTwoSkystone.this);
             }
 
             @Override
@@ -54,7 +50,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.armHomed(BlueSkystone.this);
+                return robot.armHomed(RedTwoSkystone.this);
             }
 
             @Override
@@ -82,15 +78,15 @@ public class BlueSkystone extends LinearOpMode {
                     case 0 :
                         robot.drive.setInput(0,0,0);
                         position = 0;
-                        return "left";
+                        return "center";
                     case 1 :
                         robot.drive.setInput(0,0,0);
                         position = 4;
-                        return "center";
+                        return "right";
                     case 2 :
                         robot.drive.setInput(0,0,0);
                         position = 8;
-                        return "right";
+                        return "left";
                     default:
                         robot.drive.setInput(0,0,0);
                         return "center";
@@ -102,12 +98,13 @@ public class BlueSkystone extends LinearOpMode {
         steps.put("left", new Step("moving to left...",1900) {
             @Override
             public void enter() {
-                moveMod = - 6;
+                moveMod = - 12;
+                moveModTwo = -4;
             }
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(1650, -.2, BlueSkystone.this);
+                return robot.corectingStrafe(2900, -.2, RedTwoSkystone.this);
             }
 
             @Override
@@ -120,12 +117,13 @@ public class BlueSkystone extends LinearOpMode {
         steps.put("center", new Step("moving to center...",2500) {
             @Override
             public void enter() {
-                moveMod = - 12;
+                moveMod = - 16;
+                moveModTwo = -16;
             }
 
             @Override
             public boolean isFinished() {
-               return robot.corectingStrafe(1600, .2, BlueSkystone.this);
+                return robot.corectingStrafe(1600, -.2, RedTwoSkystone.this);
             }
 
             @Override
@@ -138,12 +136,13 @@ public class BlueSkystone extends LinearOpMode {
         steps.put("right", new Step("moving to right...",3000) {
             @Override
             public void enter() {
-                moveMod = - 22;
+                moveMod = - 20;
+                moveModTwo = -16;
             }
 
             @Override
             public boolean isFinished() {
-                return robot.corectingStrafe(2900, .2, BlueSkystone.this);
+                return robot.corectingStrafe(1650, .2, RedTwoSkystone.this);
             }
 
             @Override
@@ -153,7 +152,7 @@ public class BlueSkystone extends LinearOpMode {
             }
         });
 
-        steps.put("suck", new Step("nice...", 1750) {
+        steps.put("suck", new Step("nice...", 2000) {
             @Override
             public void enter() {
                 robot.drive.recordPoint();
@@ -163,7 +162,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.suckStraight(.35,BlueSkystone.this);
+                return robot.suckStraight(.35,RedTwoSkystone.this);
             }
 
             @Override
@@ -181,7 +180,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-robot.drive.inchDifference(), BlueSkystone.this);
+                return robot.drive.straightMove(-robot.drive.inchDifference(), RedTwoSkystone.this);
             }
 
             @Override
@@ -199,7 +198,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
+                return robot.angleTurnAbsolute(-90,RedTwoSkystone.this);
             }
 
             @Override
@@ -216,67 +215,17 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(-70 + moveMod, BlueSkystone.this);
+                return robot.drive.straightMove(65 + moveMod, RedTwoSkystone.this);
             }
 
             @Override
             public String leave() {
                 robot.drive.setInput(0,0,0);
-                return "turn to foundation";
+                return "spit";
             }
         });
 
-        steps.put("turn to foundation", new Step("turning to foundation...", 1300) {
-            @Override
-            public void enter() {
-            }
-
-            @Override
-            public boolean isFinished() {
-                return robot.angleTurnAbsolute(-180,BlueSkystone.this);
-            }
-
-            @Override
-            public String leave() {
-                robot.drive.setInput(0,0,0);
-                return "align to foundation";
-            }
-        });
-
-        steps.put("align to foundation", new Step("to foundation...", 1500) {
-            @Override
-            public void enter() {
-            }
-
-            @Override
-            public boolean isFinished() {
-                return robot.drive.straightMove(-11,BlueSkystone.this);
-            }
-
-            @Override
-            public String leave() {
-                return "foundation wait";
-            }
-        });
-
-        steps.put("foundation wait", new Step("waiting...",300) {
-            @Override
-            public void enter() {
-                robot.foundationGrab(true);
-            }
-
-            @Override
-            public boolean isFinished() {
-                return false;
-            }
-
-            @Override
-            public String leave() {
-                return "grab foundation";
-            }
-        });
-
-        steps.put("grab foundation", new Step("grabbing foundation...", 4000) {
+        steps.put("spit", new Step("spitting...", 500) {
             @Override
             public void enter() {
                 robot.setIntakeSpeed(-1);
@@ -284,37 +233,143 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(16,BlueSkystone.this);
+                return false;
             }
 
             @Override
             public String leave() {
                 robot.setIntakeSpeed(0);
-                return "turn foundation";
+                return "turn around";
             }
         });
 
-        steps.put("turn foundation", new Step("turning foundation...", 2000) {
+        steps.put("turn around", new Step("turning...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.angleTurnAbsolute(-270,RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                return "second skystone";
+            }
+        });
+
+        steps.put("second skystone", new Step("move forward", 5000) {
             @Override
             public void enter() {
             }
 
             @Override
             public boolean isFinished() {
-                return robot.angleTurnAbsolute(-90,BlueSkystone.this);
+                return robot.drive.straightMove(65 + moveModTwo, RedTwoSkystone.this);
             }
 
             @Override
             public String leave() {
                 robot.drive.setInput(0,0,0);
-                return "to wall";
+                return "second strafe";
             }
         });
 
-        steps.put("to wall", new Step("pushing to wall...", 750) {
+        steps.put("second strafe", new Step("strafing...") {
             @Override
             public void enter() {
-                robot.drive.setInput(0,-.4,0);
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.corectingStrafe(2900, .2, RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                return "second suck";
+            }
+        });
+
+        steps.put("second suck", new Step("nice...", 5000) {
+            @Override
+            public void enter() {
+                robot.drive.recordPoint();
+                robot.setArmPosition(-.04,.1);
+                robot.setIntakeSpeed(1);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.suckStraight(.2,RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                robot.drive.setInput(0,0,0);
+                robot.setIntakeSpeed(0);
+                return "strafe out";
+            }
+        });
+
+        steps.put("strafe out", new Step("strafing...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.corectingStrafe(2900, -.2, RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                return "turn around two";
+            }
+        });
+
+        steps.put("turn around two", new Step("turning...") {
+            @Override
+            public void enter() {
+
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.angleTurnAbsolute(-90,RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                return "deliver second skystone";
+            }
+        });
+
+        steps.put("deliver second skystone", new Step("move forward", 5000) {
+            @Override
+            public void enter() {
+            }
+
+            @Override
+            public boolean isFinished() {
+                return robot.drive.straightMove(65, RedTwoSkystone.this);
+            }
+
+            @Override
+            public String leave() {
+                robot.drive.setInput(0,0,0);
+                return "spit two";
+            }
+        });
+
+        steps.put("spit two", new Step("spitting...", 500) {
+            @Override
+            public void enter() {
+                robot.setIntakeSpeed(-1);
             }
 
             @Override
@@ -324,7 +379,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public String leave() {
-                robot.foundationGrab(true);
+                robot.setIntakeSpeed(0);
                 return "park";
             }
         });
@@ -337,7 +392,7 @@ public class BlueSkystone extends LinearOpMode {
 
             @Override
             public boolean isFinished() {
-                return robot.drive.straightMove(36,BlueSkystone.this);
+                return robot.drive.straightMove(-10, RedTwoSkystone.this);
             }
 
             @Override
@@ -374,7 +429,7 @@ public class BlueSkystone extends LinearOpMode {
         Steps stepsRunner = new Steps(steps, this);
         stepsRunner.runStepsMap();
 
-/*================================================================================================*/
+        /*================================================================================================*/
 
         //end of autonomous
         robot.stopAllMotors();

@@ -1,4 +1,4 @@
-package eaglesfe.skystone.opmodes;
+package eaglesfe.skystone.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
@@ -13,7 +13,7 @@ public class SensorThread implements Runnable{
     private GlobalAngle angle;
     Orientation lastAngles;
 
-    SensorThread(BNO055IMU imu, GlobalAngle angle) {
+    public SensorThread(BNO055IMU imu, GlobalAngle angle) {
         this.imu = imu;
         this.angle = angle;
         this.lastAngles = new Orientation();

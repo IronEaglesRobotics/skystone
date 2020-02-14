@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 
 import java.util.Arrays;
 
-import eaglesfe.skystone.opmodes.GlobalAngle;
+import eaglesfe.skystone.subsystems.GlobalAngle;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
